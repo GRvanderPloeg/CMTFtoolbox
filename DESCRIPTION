@@ -1,12 +1,24 @@
 Package: CMTFtoolbox
-Title: What the Package Does (One Line, Title Case)
+Title: Create (Advanced) Coupled Matrix and Tensor Factorization models
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+    person("Geert Roelof", "van der Ploeg", , "g.r.ploeg@uva.nl", role = c("aut", "cre"),
+           comment = c(ORCID = "0009-0007-5204-3386"))
+Description: Creates and helps select (Advanced) Coupled Matrix and Tensor Factorization models in R.
+License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
+Imports: 
+    doParallel,
+    dplyr,
+    foreach,
+    multiway,
+    optimx,
+    parallel,
+    rTensor,
+    stats,
+    tidyr
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
