@@ -95,6 +95,20 @@ vect_to_fac = function(vect, Z){
   return(Fac)
 }
 
+#' Create a tensor out of a set of matrices similar to a component model.
+#'
+#' @param A I x N matrix corresponding to loadings in the first mode for N components.
+#' @param B J x N matrix corresponding to loadings in the second mode for N components.
+#' @param C K x N matrix corresponding to loadings in the third mode for N components.
+#'
+#' @return M, an I x J x K tensor.
+#' @export
+#'
+#' @examples
+#' A = rnorm(108)
+#' B = rnorm(100)
+#' C = rnorm(10)
+#' M = reinflateTensor(A,B,C)
 reinflateTensor = function(A, B, C){
 
   # Try to cast to matrix if the input is different
@@ -112,6 +126,18 @@ reinflateTensor = function(A, B, C){
   return(M)
 }
 
+#' Create a matrix from a matrix of scores and loadings similar to a component model.
+#'
+#' @param A I x N matrix corresponding to scores for N components.
+#' @param B J x N matrix corresponding to loadings for N components.
+#'
+#' @return M, an I x J matrix.
+#' @export
+#'
+#' @examples
+#' A = rnorm(108)
+#' B = rnorm(100)
+#' M = reinflateMatrix(A,B)
 reinflateMatrix = function(A, B){
   M = tcrossprod(A, B)
   return(M)

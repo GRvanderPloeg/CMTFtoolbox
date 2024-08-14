@@ -21,7 +21,7 @@
 #' modes = list(c(1,2,3), c(1,4,5))
 #' Z = setupCMTFdata(datasets, modes)
 #' model = cmtf_opt(Z, 1)
-cmtf_opt = function(Z, numComponents, initialization="random", maxit=2500, tol=1e-6, nstart=1, numCores=1){
+cmtf_opt = function(Z, numComponents, initialization="random", maxit=2500, tol=1e-8, nstart=1, numCores=1){
   numModes = max(unlist(Z$modes))
   numDatasets = length(Z$object)
 
@@ -30,19 +30,17 @@ cmtf_opt = function(Z, numComponents, initialization="random", maxit=2500, tol=1
     cl = parallel::makeCluster(numCores)
     doParallel::registerDoParallel(cl)
     models = foreach::foreach(i=1:nstart) %dopar% {
-      opt=list("fn"=function(x){return(cmtf_fun(x,Z))}, "gr"=function(x){return(cmtf_gradient(x,Z))})
+      opt = list("fn"=function(x){return(cmtf_fun(x,Z))}, "gr"=function(x){return(cmtf_gradient(x,Z))})
       init = CMTFtoolbox::initializeCMTF(Z, numComponents, initialization, output="vect")
-      #model = optimx::ncg(init, function(x){return(cmtf_fun(x,Z))}, function(x){return(cmtf_gradient(x,Z))}, control=control)
-      model = mize::mize(init, opt, max_iter=maxit, step_tol=tol, method="CG", line_search="MT")
+      model = mize::mize(init, opt, max_iter=maxit, rel_tol=tol, method="CG", cg_update="HS", line_search="MT")
     }
     parallel::stopCluster(cl)
   } else{
     models = list()
     for(i in 1:nstart){
-      opt=list("fn"=function(x){return(cmtf_fun(x,Z))}, "gr"=function(x){return(cmtf_gradient(x,Z))})
+      opt = list("fn"=function(x){return(cmtf_fun(x,Z))}, "gr"=function(x){return(cmtf_gradient(x,Z))})
       init = initializeCMTF(Z, numComponents, initialization, output="vect")
-      #models[[i]] = optimx::ncg(init, function(x){return(cmtf_fun(x,Z))}, function(x){return(cmtf_gradient(x,Z))}, control=control)
-      models[[i]] = mize::mize(init, opt, max_iter=maxit, step_tol=tol, method="CG", line_search="MT")
+      models[[i]] = mize::mize(init, opt, max_iter=maxit, rel_tol=tol, method="CG", cg_update="HS", line_search="MT")
     }
   }
 
