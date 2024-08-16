@@ -66,6 +66,26 @@ fac_to_vect = function(Fac){
   return(unlist(Fac))
 }
 
+#' Helper function to convert vectorized output of (a)cmtf to a Fac list object with all loadings per mode.
+#'
+#' @param vect Vectorized output of (a)cmtf
+#' @param Z Original Z input object (see [setupCMTFdata]).
+#'
+#' @return Fac: list object with all loadings in all components per mode, ordered the same way as Z$modes.
+#' @export
+#'
+#' @examples
+#' A = array(rnorm(108*2), c(108, 2))
+#' B = array(rnorm(100*4), c(100, 4))
+#' C = array(rnorm(10*4), c(10, 4))
+#'
+#' df1 = reinflateTensor(A, B[,1:2], C[,1:2])
+#' df2 = reinflateTensor(A, B[,3:4], C[,3:4])
+#' datasets = list(df1, df2)
+#' modes = list(c(1,2,3), c(1,4,5))
+#' Z = setupCMTFdata(datasets, modes)
+#' result = cmtf_opt(Z, 2, initialization="random", max_iter = 2)
+#' Fac = vect_to_fac(result$par)
 vect_to_fac = function(vect, Z){
   numDatasets = length(Z$object)
   numModes = max(unlist(Z$modes))
@@ -182,4 +202,38 @@ removeTwoNormCol = function(df){
   }
 
   return(result)
+}
+
+#' Normalize all vectors in model output Fac object to norm 1.
+#'
+#' @param Fac List object with all components per mode per item.
+#'
+#' @return List object of normalized Fac object and the extracted norms per component.
+#' @export
+#'
+#' @examples
+#' A = array(rnorm(108*2), dim(108,2))
+#' B = array(rnorm(100*2), dim(100,2))
+#' C = array(rnorm(10*2), dim(10,2))
+#' Fac = list(A,B,C)
+#' output = normalizeFac(Fac)
+normalizeFac = function(Fac){
+  numComponents = ncol(Fac[[1]])
+  numModes = length(Fac)
+
+  normalizedFac = Fac
+  extractedNorms = 1:numComponents
+
+  for(i in 1:numComponents){
+    extractedNorms[i] = 1
+    for(j in 1:numModes){
+      vect = Fac[[j]][,i]
+      norm_vect = norm(as.matrix(vect), "F")
+
+      normalizedFac[[j]][,i] = vect / norm_vect
+      extractedNorms[i] = extractedNorms[i] * norm_vect
+    }
+  }
+
+  return(list("Fac"=normalizedFac, "norms"=extractedNorms))
 }

@@ -1,17 +1,11 @@
 #' Advanced coupled matrix and tensor factorizations
 #'
-#' @param Z Combined dataset and mode object as produced by [setupCMTFdata()].
-#' @param numComponents Number of components
-#' @param initialization Initialization, either "random" (default) or "nvec" for numComponents components of the concatenated data using svd.
+#' @inherit cmtf_opt
 #' @param alpha Scalar penalizing the components to be norm 1 (default 1).
 #' @param beta Vector of penalty values for each dataset, penalizing the lambda terms (default 1e-3).
 #' @param epsilon Scalar value to make it possible to compute the partial derivatives of lambda (default 1e-8).
-#' @param maxit Maximum number of iterations (default 2500, see also [optimx::Rcgmin()]).
-#' @param tol Tolerance for testing the size of the square of the gradient (default 1e-6, see also [optimx::Rcgmin()]).
-#' @param nstart Number of models to produce (default 1). If set higher than one, the package will return the best fitted model.
-#' @param numCores Number of cores to use (default 1). If set higher than one, the package will attempt to run in parallel.
 #'
-#' @return output, see [optimx::Rcgmin()]
+#' @return output, see [mize::mize()]
 #' @export
 #' @importFrom foreach %dopar%
 #'

@@ -2,9 +2,12 @@
 
 export(acmtf_opt)
 export(cmtf_opt)
+export(computeFMS)
 export(initializeACMTF)
 export(initializeCMTF)
+export(normalizeFac)
 export(reinflateMatrix)
 export(reinflateTensor)
 export(setupCMTFdata)
+export(vect_to_fac)
 importFrom(foreach,"%dopar%")

@@ -1,4 +1,26 @@
+#' Compute Factor Match Score for two models.
+#'
+#' @param Fac1 A list of matrices corresponding to found components per mode in model 1.
+#' @param Fac2 A list of matrices corresponding to found components per mode in model 2.
+#' @param modes List of modes per dataset.
+#'
+#' @return Vector of FMS scores, one per dataset.
+#' @export
+#'
+#' @examples
+#' A = array(rnorm(108*2), c(108, 2))
+#' B = array(rnorm(100*2), c(100, 2))
+#' C = array(rnorm(10*2), c(10, 2))
+#' D = array(rnorm(100*2), c(100, 2))
+#' E = array(rnorm(10*2), c(10, 2))
+#'
+#' Fac1 = list(A,B,C,D,E)
+#' Fac2 = Fac1 # identical models for the purposes of demonstration
+#' modes = list(c(1,2,3), c(1,4,5))
+#
+#' FMS_result = computeFMS(Fac1, Fac2, modes) # FMS_result = c(1,1)
 computeFMS = function(Fac1, Fac2, modes){
+  # Let's assume CMTF for now.
   numComponents = ncol(Fac1[[1]])
   numDatasets = length(modes)
 
@@ -33,19 +55,19 @@ computeFMS = function(Fac1, Fac2, modes){
         vect2 = as.matrix(Fac2[[mode]][,j])
 
         #term = abs(t(vect1)*vect2) / (norm(vect1)*norm(vect2))
-        term = abs(sum(vect1*vect2)) / (norm(vect1)*norm(vect2))
+        term = abs(t(vect1) %*% vect2) / (norm(vect1,"F")*norm(vect2,"F"))
         total = total * term
       }
       FMS = FMS + total
       numComparisons = numComparisons + 1
     }
-  }
 
-  if(numComparisons > 0){
-    FMS_result[i] = FMS / numComparisons
-  }
-  else{
-    FMS_result[i] = NA
+    if(numComparisons > 0){
+      FMS_result[i] = FMS / numComparisons
+    }
+    else{
+      FMS_result[i] = NA
+    }
   }
 
   return(FMS_result)

@@ -37,6 +37,6 @@ test_that("the objective is very high if an incorrect solution is found", {
   modes = list(c(1,2,3), c(1,4,5))
   Z = setupCMTFdata(datasets, modes)
 
-  result = cmtf_opt(Z, 2, initialization="random", maxit = 2)
+  result = cmtf_opt(Z, 2, initialization="random", max_iter = 2)
   expect_gt(result$f, 1)
 })

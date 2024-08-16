@@ -8,10 +8,17 @@ cmtf_opt(
   Z,
   numComponents,
   initialization = "random",
-  maxit = 2500,
-  tol = 1e-08,
+  cg_update = "HS",
+  line_search = "MT",
+  max_iter = 10000,
+  max_fn = 10000,
+  ls_max_fn = 20,
+  abs_tol = 1e-08,
+  rel_tol = 1e-08,
+  grad_tol = 1e-08,
   nstart = 1,
-  numCores = 1
+  numCores = 1,
+  allOutput = FALSE
 )
 }
 \arguments{
@@ -21,20 +28,429 @@ cmtf_opt(
 
 \item{initialization}{Initialization, either "random" (default) or "nvec" for numComponents components of the concatenated data using svd.}
 
-\item{maxit}{Maximum number of iterations (default 2500, see also \code{\link[optimx:Rcgmin]{optimx::Rcgmin()}}).}
+\item{cg_update}{Type of update to use for the \code{"CG"} method. For
+details see the "CG" subsection of the "Optimization Methods" section.
+Ignored if \code{method} is not \code{"CG"}.}
 
-\item{tol}{Tolerance for testing the size of the square of the gradient (default 1e-6, see also \code{\link[optimx:Rcgmin]{optimx::Rcgmin()}}).}
+\item{line_search}{Type of line search to use. See 'Details'.}
+
+\item{max_iter}{Maximum number of iterations to optimize for. Defaults to
+100. See the 'Convergence' section for details.}
+
+\item{max_fn}{Maximum number of function evaluations. See the 'Convergence'
+section for details.}
+
+\item{ls_max_fn}{Maximum number of function evaluations allowed during a
+line search.}
+
+\item{abs_tol}{Absolute tolerance for comparing two function evaluations.
+See the 'Convergence' section for details.}
+
+\item{rel_tol}{Relative tolerance for comparing two function evaluations.
+See the 'Convergence' section for details.}
+
+\item{grad_tol}{Absolute tolerance for the length (l2-norm) of the gradient
+vector. See the 'Convergence' section for details.}
 
 \item{nstart}{Number of models to produce (default 1). If set higher than one, the package will return the best fitted model.}
 
 \item{numCores}{Number of cores to use (default 1). If set higher than one, the package will attempt to run in parallel.}
 }
 \value{
-output, see \code{\link[optimx:Rcgmin]{optimx::Rcgmin()}}
+List object, similar to \code{\link[mize:mize]{mize::mize()}} output. Also includes a Fac object of the model, which is a list of components per mode.
 }
 \description{
-Coupled matrix and tensor factorizations
+Numerical optimization including conjugate gradient,
+Broyden-Fletcher-Goldfarb-Shanno (BFGS), and the limited memory BFGS.
 }
+\details{
+The function to be optimized should be passed as a list to the \code{fg}
+parameter. This should consist of:
+\itemize{
+\item{\code{fn}}. The function to be optimized. Takes a vector of parameters
+  and returns a scalar.
+\item{\code{gr}}. The gradient of the function. Takes a vector of parameters
+and returns a vector with the same length as the input parameter vector.
+\item{\code{fg}}. (Optional) function which calculates the function and
+gradient in the same routine. Takes a vector of parameters and returns a list
+containing the function result as \code{fn} and the gradient result as
+\code{gr}.
+\item{\code{hs}}. (Optional) Hessian of the function. Takes a vector of
+parameters and returns a square matrix with dimensions the same as the length
+of the input vector, containing the second derivatives. Only required to be
+present if using the \code{"NEWTON"} method. If present, it will be used
+during initialization for the \code{"BFGS"} and \code{"SR1"} quasi-Newton
+methods (otherwise, they will use the identity matrix). The quasi-Newton
+methods are implemented using the inverse of the Hessian, and rather than
+directly invert the provided Hessian matrix, will use the inverse of the
+diagonal of the provided Hessian only.
+}
+
+The \code{fg} function is optional, but for some methods (e.g. line search
+methods based on the Wolfe criteria), both the function and gradient values
+are needed for the same parameter value. Calculating them in the same
+function can save time if there is a lot of shared work.
+}
+\section{Optimization Methods}{
+
+
+The \code{method} specifies the optimization method:
+
+\itemize{
+\item \code{"SD"} is plain steepest descent. Not very effective on its own,
+but can be combined with various momentum approaches.
+\item \code{"BFGS"} is the Broyden-Fletcher-Goldfarb-Shanno quasi-Newton
+method. This stores an approximation to the inverse of the Hessian of the
+function being minimized, which requires storage proportional to the
+square of the length of \code{par}, so is unsuitable for large problems.
+\item \code{"SR1"} is the Symmetric Rank 1 quasi-Newton method, incorporating
+the safeguard given by Nocedal and Wright. Even with the safeguard, the SR1
+method is not guaranteed to produce a descent direction. If this happens, the
+BFGS update is used for that iteration instead. Note that I have not done any
+research into the theoretical justification for combining BFGS with SR1 like
+this, but empirically (comparing to BFGS results with the datasets in the
+funconstrain package \url{https://github.com/jlmelville/funconstrain}), it
+works competitively with BFGS, particularly with a loose line search.
+\item \code{"L-BFGS"} is the Limited memory Broyden-Fletcher-Goldfarb-Shanno
+quasi-Newton method. This does not store the inverse Hessian approximation
+directly and so can scale to larger-sized problems than \code{"BFGS"}. The
+amount of memory used can be controlled with the \code{memory} parameter.
+\item \code{"CG"} is the conjugate gradient method. The \code{cg_update}
+parameter allows for different methods for choosing the next direction:
+  \itemize{
+    \item \code{"FR"} The method of Fletcher and Reeves.
+    \item \code{"PR"} The method of Polak and Ribiere.
+    \item \code{"PR+"} The method of Polak and Ribiere with a restart to
+    steepest descent if conjugacy is lost. The default.
+    \item \code{"HS"} The method of Hestenes and Stiefel.
+    \item \code{"DY"} The method of Dai and Yuan.
+    \item \code{"HZ"} The method of Hager and Zhang.
+    \item \code{"HZ+"} The method of Hager and Zhang with restart, as used
+    in CG_DESCENT.
+    \item \code{"PRFR"} The modified PR-FR method of Gilbert and Nocedal
+    (1992).
+  }
+The \code{"PR+"} and \code{"HZ+"} are likely to be most robust in practice.
+Other updates are available more for curiosity purposes.
+\item \code{"TN"} is the Truncated Newton method, which approximately solves
+the Newton step without explicitly calculating the Hessian (at the expense
+of extra gradient calculations).
+\item \code{"NAG"} is the Nesterov Accelerated Gradient method. The exact
+form of the momentum update in this method can be controlled with the
+following parameters:
+  \itemize{
+  \item{\code{nest_q}} Strong convexity parameter. Must take a value
+  between 0 (strongly convex) and 1 (zero momentum). Ignored if
+  \code{nest_convex_approx} is \code{TRUE}.
+  \item{\code{nest_convex_approx}} If \code{TRUE}, then use an approximation
+  due to Sutskever for calculating the momentum parameter.
+  \item{\code{nest_burn_in}} Number of iterations to wait before using a
+  non-zero momentum.
+  }
+\item \code{"DBD"} is the Delta-Bar-Delta method of Jacobs.
+\item \code{"Momentum"} is steepest descent with momentum. See below for
+momentum options.
+}
+
+For more details on gradient-based optimization in general, and the BFGS,
+L-BFGS and CG methods, see Nocedal and Wright.
+
+}
+
+\section{Line Search}{
+
+
+The parameter \code{line_search} determines the line search to be carried
+out:
+
+\itemize{
+  \item \code{"Rasmussen"} carries out a line search using the strong Wolfe
+  conditions as implemented by Carl Edward Rasmussen's minimize.m routines.
+  \item \code{"More-Thuente"} carries out a line search using the strong Wolfe
+  conditions and the method of More-Thuente. Can be abbreviated to
+  \code{"MT"}.
+  \item \code{"Schmidt"} carries out a line search using the strong Wolfe
+  conditions as implemented in Mark Schmidt's minFunc routines.
+  \item \code{"Backtracking"} carries out a back tracking line search using
+  the sufficient decrease (Armijo) condition. By default, cubic interpolation
+  using function and gradient values is used to find an acceptable step size.
+  A constant step size reduction can be used by specifying a value for 
+  \code{step_down} between 0 and 1 (e.g. step size will be halved if 
+  \code{step_down} is set to \code{0.5}). If a constant step size reduction
+  is used then only function evaluations are carried out and no extra 
+  gradient calculations are made.
+  \item \code{"Bold Driver"} carries out a back tracking line search until a
+  reduction in the function value is found.
+  \item \code{"Constant"} uses a constant line search, the value of which
+  should be provided with \code{step0}. Note that this value will be
+  multiplied by the magnitude of the direction vector used in the gradient
+  descent method. For method \code{"SD"} only, setting the
+  \code{norm_direction} parameter to \code{TRUE} will scale the direction
+  vector so it has unit length.
+}
+
+If using one of the methods: \code{"BFGS"}, \code{"L-BFGS"}, \code{"CG"} or
+\code{"NAG"}, one of the Wolfe line searches: \code{"Rasmussen"} or
+\code{"More-Thuente"}, \code{"Schmidt"} or \code{"Hager-Zhang"} should be
+used, otherwise very poor performance is likely to be encountered. The
+following parameters can be used to control the line search:
+
+ \itemize{
+   \item{\code{c1}} The sufficient decrease condition. Normally left at its
+   default value of 1e-4.
+   \item{\code{c2}} The sufficient curvature condition. Defaults to 0.9 if
+   using the methods \code{"BFGS"} and \code{"L-BFGS"}, and to 0.1 for
+   every other method, more or less in line with the recommendations given
+   by Nocedal and Wright. The smaller the value of \code{c2}, the stricter
+   the line search, but it should not be set to smaller than \code{c1}.
+   \item{\code{step0}} Initial value for the line search on the first step.
+   If a positive numeric value is passed as an argument, that value is used
+   as-is. Otherwise, by passing a string as an argument, a guess is made
+   based on values of the gradient, function or parameters, at the starting
+   point:
+   \itemize{
+     \item{\code{"rasmussen"}} As used by Rasmussen in \code{minimize.m}:
+     \deqn{\frac{1}{1+\left|g\right|^2}}{1 / 1 + (|g|^2)}
+     \item{\code{"scipy"}} As used in \code{optimize.py} in the python
+     library Scipy.
+     \deqn{\frac{1}{\left|g\right|}}{1 / |g|}
+     \item{\code{"schmidt"}} As used by Schmidt in \code{minFunc.m}
+     (the reciprocal of the l1 norm of g)
+     \deqn{\frac{1}{\left|g\right|_1}}{1 / |g|1}
+     \item{\code{"hz"}} The method suggested by Hager and Zhang (2006) for
+     the CG_DESCENT software.
+   }
+   These arguments can be abbreviated.
+   \item{\code{step_next_init}} How to initialize alpha value of subsequent
+   line searches after the first, using results from the previous line search:
+   \itemize{
+     \item{\code{"slope ratio"}} Slope ratio method.
+     \item{\code{"quadratic"}} Quadratic interpolation method.
+     \item{\code{"hz"}} The QuadStep method of Hager and Zhang (2006) for
+     the CG_DESCENT software.
+     \item{scalar numeric} Set to a numeric value (e.g.
+     \code{step_next_init = 1}) to explicitly set alpha to this value
+     initially.
+   }
+   These arguments can be abbreviated. Details on the first two methods
+   are provided by Nocedal and Wright.
+   \item{\code{try_newton_step}} For quasi-Newton methods (e.g. \code{"TN"},
+   \code{"BFGS"} and \code{"L-BFGS"}), setting this to \code{TRUE} will try
+   the "natural" step size of 1, whenever the \code{step_next_init} method
+   suggests an initial step size larger than that.
+   \item{\code{strong_curvature}} If \code{TRUE}, then the strong curvature
+   condition will be used to check termination in Wolfe line search methods.
+   If \code{FALSE}, then the standard curvature condition will be used. The
+   default is \code{NULL} which lets the different Wolfe line searches choose
+   whichever is their default behavior. This option is ignored if not using
+   a Wolfe line search method.
+   \item{\code{approx_armijo}} If \code{TRUE}, then the approximate Armijo
+   sufficient decrease condition (Hager and Zhang, 2005) will be used to
+   check termination in Wolfe line search methods. If \code{FALSE}, then the
+   exact curvature condition will be used. The default is \code{NULL} which
+   lets the different Wolfe line searches choose whichever is their default
+   behavior. This option is ignored if not using a Wolfe line search method.
+}
+
+For the Wolfe line searches, the methods of \code{"Rasmussen"},
+\code{"Schmidt"} and \code{"More-Thuente"} default to using the strong
+curvature condition and the exact Armijo condition to terminate the line
+search (i.e. Strong Wolfe conditions). The default step size initialization
+methods use the Rasmussen method for the first iteration and quadratic
+interpolation for subsequent iterations.
+
+The \code{"Hager-Zhang"} Wolfe line search method defaults to the standard
+curvature condition and the approximate Armijo condition (i.e. approximate
+Wolfe conditions). The default step size initialization methods are those
+used by Hager and Zhang (2006) in the description of CG_DESCENT.
+
+If the \code{"DBD"} is used for the optimization \code{"method"}, then the
+\code{line_search} parameter is ignored, because this method controls both
+the direction of the search and the step size simultaneously. The following
+parameters can be used to control the step size:
+
+\itemize{
+  \item{\code{step_up}} The amount by which to increase the step size in a
+  direction where the current step size is deemed to be too short. This
+  should be a positive scalar.
+  \item{\code{step_down}} The amount by which to decrease the step size in a
+  direction where the currents step size is deemed to be too long. This
+  should be a positive scalar smaller than 1. Default is 0.5.
+  \item{\code{step_up_fun}} How to increase the step size: either the method of
+  Jacobs (addition of \code{step_up}) or Janet and co-workers (multiplication
+  by \code{step_up}). Note that the step size decrease \code{step_down} is always
+  a multiplication.
+}
+
+The \code{"bold driver"} line search also uses the \code{step_up} and
+\code{step_down} parameters with similar meanings to their use with the
+\code{"DBD"} method: the backtracking portion reduces the step size by a
+factor of \code{step_down}. Once a satisfactory step size has been found, the
+line search for the next iteration is initialized by multiplying the
+previously found step size by \code{step_up}.
+
+}
+
+\section{Momentum}{
+
+
+For \code{method} \code{"Momentum"}, momentum schemes can be accessed
+through the momentum arguments:
+
+\itemize{
+\item{\code{mom_type}} Momentum type, either \code{"classical"} or
+  \code{"nesterov"} (case insensitive, can be abbreviated). Using
+  \code{"nesterov"} applies the momentum step before the
+  gradient descent as suggested by Sutskever, emulating the behavior of the
+  Nesterov Accelerated Gradient method.
+\item{\code{mom_schedule}} How the momentum changes over the course of the
+  optimization:
+  \itemize{
+  \item{If a numerical scalar is provided, a constant momentum will be
+    applied throughout.}
+  \item{\code{"nsconvex"}} Use the momentum schedule from the Nesterov
+  Accelerated Gradient method suggested for non-strongly convex functions.
+  Parameters which control the NAG momentum
+  can also be used in combination with this option.
+  \item{\code{"switch"}} Switch from one momentum value (specified via
+  \code{mom_init}) to another (\code{mom_final}) at a
+  a specified iteration (\code{mom_switch_iter}).
+  \item{\code{"ramp"}} Linearly increase from one momentum value
+  (\code{mom_init}) to another (\code{mom_final}).
+  \item{If a function is provided, this will be invoked to provide a momentum
+  value. It must take one argument (the current iteration number) and return
+  a scalar.}
+  }
+  String arguments are case insensitive and can be abbreviated.
+}
+
+The \code{restart} parameter provides a way to restart the momentum if the
+optimization appears to be not be making progress, inspired by the method
+of O'Donoghue and Candes (2013) and Su and co-workers (2014). There are three
+strategies:
+\itemize{
+  \item{\code{"fn"}} A restart is applied if the function does not decrease
+  on consecutive iterations.
+  \item{\code{"gr"}} A restart is applied if the direction of the
+  optimization is not a descent direction.
+  \item{\code{"speed"}} A restart is applied if the update vector is not
+  longer (as measured by Euclidean 2-norm) in consecutive iterations.
+}
+
+The effect of the restart is to "forget" any previous momentum update vector,
+and, for those momentum schemes that change with iteration number, to
+effectively reset the iteration number back to zero. If the \code{mom_type}
+is \code{"nesterov"}, the gradient-based restart is not available. The
+\code{restart_wait} parameter controls how many iterations to wait after a
+restart, before allowing another restart. Must be a positive integer. Default
+is 10, as used by Su and co-workers (2014). Setting this too low could
+cause premature convergence. These methods were developed specifically
+for the NAG method, but can be employed with any momentum type and schedule.
+
+If \code{method} type \code{"momentum"} is specified with no other values,
+the momentum scheme will default to a constant value of \code{0.9}.
+
+}
+
+\section{Convergence}{
+
+
+
+There are several ways for the optimization to terminate. The type of
+termination is communicated by a two-item list \code{terminate} in the return
+value, consisting of \code{what}, a short string describing what caused the
+termination, and \code{val}, the value of the termination criterion that
+caused termination.
+
+The following parameters control various stopping criteria:
+
+\itemize{
+  \item{\code{max_iter}} Maximum number of iterations to calculate. Reaching
+  this limit is indicated by \code{terminate$what} being \code{"max_iter"}.
+  \item{\code{max_fn}} Maximum number of function evaluations allowed.
+  Indicated by \code{terminate$what} being \code{"max_fn"}.
+  \item{\code{max_gr}} Maximum number of gradient evaluations allowed.
+  Indicated by \code{terminate$what} being \code{"max_gr"}.
+  \item{\code{max_fg}} Maximum number of gradient evaluations allowed.
+  Indicated by \code{terminate$what} being \code{"max_fg"}.
+  \item{\code{abs_tol}} Absolute tolerance of the function value. If the
+  absolute value of the function falls below this threshold,
+  \code{terminate$what} will be \code{"abs_tol"}. Will only be triggered if
+  the objective function has a minimum value of zero.
+  \item{\code{rel_tol}} Relative tolerance of the function value, comparing
+  consecutive function evaluation results. Indicated by \code{terminate$what}
+  being \code{"rel_tol"}.
+  \item{\code{grad_tol}} Absolute tolerance of the l2 (Euclidean) norm of
+  the gradient. Indicated by \code{terminate$what} being \code{"grad_tol"}.
+  Note that the gradient norm is not a very reliable stopping criterion
+  (see Nocedal and co-workers 2002), but is quite commonly used, so this
+  might be useful for comparison with results from other optimization
+  software.
+  \item{\code{ginf_tol}} Absolute tolerance of the infinity norm (maximum
+  absolute component) of the gradient. Indicated by \code{terminate$what}
+  being \code{"ginf_tol"}.
+  \item{\code{step_tol}} Absolute tolerance of the step size, i.e. the
+  Euclidean distance between values of \code{par} fell below the specified
+  value. Indicated by \code{terminate$what} being \code{"step_tol"}.
+  For those optimization methods which allow for abandoning the result of an
+  iteration and restarting using the previous iteration's value of
+  \code{par} an iteration, \code{step_tol} will not be triggered.
+}
+
+Convergence is checked between specific iterations. How often is determined
+by the \code{check_conv_every} parameter, which specifies the number of
+iterations between each check. By default, this is set for every iteration.
+
+Be aware that if \code{abs_tol} or \code{rel_tol} are non-\code{NULL}, this
+requires the function to have been evaluated at the current position at the
+end of each iteration. If the function at that position has not been
+calculated, it will be calculated and will contribute to the total reported
+in the \code{counts} list in the return value. The calculated function value
+is cached for use by the optimizer in the next iteration, so if the optimizer
+would have needed to calculate the function anyway (e.g. use of the strong
+Wolfe line search methods), there is no significant cost accrued by
+calculating it earlier for convergence calculations. However, for methods
+that don't use the function value at that location, this could represent a
+lot of extra function evaluations. On the other hand, not checking
+convergence could result in a lot of extra unnecessary iterations.
+Similarly, if \code{grad_tol} or \code{ginf_tol} is non-\code{NULL}, then
+the gradient will be calculated if needed.
+
+If extra function or gradient evaluations is an issue, set
+\code{check_conv_every} to a higher value, but be aware that this can cause
+convergence limits to be exceeded by a greater amount.
+
+Note also that if the \code{verbose} parameter is \code{TRUE}, then a summary
+of the results so far will be logged to the console whenever a convergence
+check is carried out. If the \code{store_progress} parameter is \code{TRUE},
+then the same information will be returned as a data frame in the return
+value. For a long optimization this could be a lot of data, so by default it
+is not stored.
+
+Other ways for the optimization to terminate is if an iteration generates a
+non-finite (i.e. \code{Inf} or \code{NaN}) gradient or function value.
+Some, but not all, line-searches will try to recover from the latter, by
+reducing the step size, but a non-finite gradient calculation during the
+gradient descent portion of optimization is considered catastrophic by mize,
+and it will give up. Termination under non-finite gradient or function
+conditions will result in \code{terminate$what} being \code{"gr_inf"} or
+\code{"fn_inf"} respectively. Unlike the convergence criteria, the
+optimization will detect these error conditions and terminate even if a
+convergence check would not be carried out for this iteration.
+
+The value of \code{par} in the return value should be the parameters which
+correspond to the lowest value of the function that has been calculated
+during the optimization. As discussed above however, determining which set
+of parameters requires a function evaluation at the end of each iteration,
+which only happens if either the optimization method calculates it as part
+of its own operation or if a convergence check is being carried out during
+this iteration. Therefore, if your method does not carry out function
+evaluations and \code{check_conv_every} is set to be so large that no
+convergence calculation is carried out before \code{max_iter} is reached,
+then the returned value of \code{par} is the last value encountered.
+
+}
+
 \examples{
 I = 108
 J = 100
@@ -44,4 +460,73 @@ datasets = list(df, df)
 modes = list(c(1,2,3), c(1,4,5))
 Z = setupCMTFdata(datasets, modes)
 model = cmtf_opt(Z, 1)
+}
+\references{
+Gilbert, J. C., & Nocedal, J. (1992). Global convergence properties of conjugate gradient methods for optimization.
+\emph{SIAM Journal on optimization}, \emph{2}(1), 21-42.
+
+Hager, W. W., & Zhang, H. (2005).
+A new conjugate gradient method with guaranteed descent and an efficient line search.
+\emph{SIAM Journal on Optimization}, \emph{16}(1), 170-192.
+
+Hager, W. W., & Zhang, H. (2006).
+Algorithm 851: CG_DESCENT, a conjugate gradient method with guaranteed descent.
+\emph{ACM Transactions on Mathematical Software (TOMS)}, \emph{32}(1), 113-137.
+
+Jacobs, R. A. (1988).
+Increased rates of convergence through learning rate adaptation.
+\emph{Neural networks}, \emph{1}(4), 295-307.
+
+Janet, J. A., Scoggins, S. M., Schultz, S. M., Snyder, W. E., White, M. W.,
+& Sutton, J. C. (1998, May).
+Shocking: An approach to stabilize backprop training with greedy adaptive
+learning rates.
+In \emph{1998 IEEE International Joint Conference on Neural Networks Proceedings.}
+(Vol. 3, pp. 2218-2223). IEEE.
+
+Martens, J. (2010, June).
+Deep learning via Hessian-free optimization.
+In \emph{Proceedings of the International Conference on Machine Learning.}
+(Vol. 27, pp. 735-742).
+
+More', J. J., & Thuente, D. J. (1994).
+Line search algorithms with guaranteed sufficient decrease.
+\emph{ACM Transactions on Mathematical Software (TOMS)}, \emph{20}(3), 286-307.
+
+Nocedal, J., Sartenaer, A., & Zhu, C. (2002).
+On the behavior of the gradient norm in the steepest descent method.
+\emph{Computational Optimization and Applications}, \emph{22}(1), 5-35.
+
+Nocedal, J., & Wright, S. (2006).
+Numerical optimization.
+Springer Science & Business Media.
+
+O'Donoghue, B., & Candes, E. (2013).
+Adaptive restart for accelerated gradient schemes.
+\emph{Foundations of computational mathematics}, \emph{15}(3), 715-732.
+
+Schmidt, M. (2005).
+minFunc: unconstrained differentiable multivariate optimization in Matlab.
+\url{https://www.cs.ubc.ca/~schmidtm/Software/minFunc.html}
+
+Su, W., Boyd, S., & Candes, E. (2014).
+A differential equation for modeling Nesterov's accelerated gradient method: theory and insights.
+In \emph{Advances in Neural Information Processing Systems} (pp. 2510-2518).
+
+Sutskever, I. (2013).
+\emph{Training recurrent neural networks}
+(Doctoral dissertation, University of Toronto).
+
+Sutskever, I., Martens, J., Dahl, G., & Hinton, G. (2013).
+On the importance of initialization and momentum in deep learning.
+In \emph{Proceedings of the 30th international conference on machine learning (ICML-13)}
+(pp. 1139-1147).
+
+Xie, D., & Schlick, T. (1999).
+Remark on Algorithm 702 - The updated truncated Newton minimization package.
+\emph{ACM Transactions on Mathematical Software (TOMS)}, \emph{25}(1), 108-122.
+
+Xie, D., & Schlick, T. (2002).
+A more lenient stopping rule for line search algorithms.
+\emph{Optimization Methods and Software}, \emph{17}(4), 683-700.
 }

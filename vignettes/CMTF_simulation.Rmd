@@ -73,7 +73,7 @@ First we simulate a case where a tensor (size 108 x 100 x 10) and a matrix (size
 tensorMatrixData = simTensorMatrixData(I=108, J=100, K=10, L=100, numComponents=2)
 ```
 
-We run the cmtf_opt() function using the two left vectors from an SVD of the tensors as our initial guess. This finds the correct solution pretty quickly.
+We run the cmtf_opt() function using the two left vectors from an SVD of the tensors as our initial guess. This finds the correct solution pretty quickly. Note that random initialization is also possible, but will take longer to converge.
 
 ```{r run CMTF with nvec tensor-matrix}
 result_nvec = cmtf_opt(tensorMatrixData$Z, 2, initialization="nvec")
@@ -97,29 +97,7 @@ ggarrange(a,b,c,d,e,f,g,h, nrow=2, ncol=4)
 ```
 Note that negative correlations may be observed due to component flipping, which is similar to Principal Component Analysis and does not alter the description of the found subspace. There is also a difference in magnitude between the simulated components and the modelled components due to CMTF not penalizing the size of the vectors.
 
-A similar (but not inferior) solution can be found with randomly initialized vectors. Here we randomly initialize 10 models using one core due to limitations in package development for CRAN. This might take a while to run. Only the best model (the one with lowest f) will be returned.
-
-```{r run cmtf with random init tensor-matrix}
-result_rnd = cmtf_opt(tensorMatrixData$Z, 2, initialization="random", nstart=10)
-```
-
-For this result the loss is `r result_rnd$f`. This solution was found using `r result_rnd$iter` iterations. We will visually verify this result with the plot below.
-
-```{r plot result cmtf_random tensor-matrix}
-a = cbind(tensorMatrixData$A, result_rnd$Fac[[1]]) %>% as_tibble() %>% ggplot(aes(x=V2,y=V3)) + geom_point() + xlab("Simulated loadings") + ylab("CMTF component 1") + ggtitle("Subject mode (shared)") + stat_cor()
-b = cbind(tensorMatrixData$B, result_rnd$Fac[[2]]) %>% as_tibble() %>% ggplot(aes(x=V2, y=V3)) + geom_point() + xlab("Simulated loadings") + ylab("") + ggtitle("Feature mode X1") + stat_cor()
-c = cbind(tensorMatrixData$C, result_rnd$Fac[[3]]) %>% as_tibble() %>% ggplot(aes(x=V2,y=V3)) + geom_point() + xlab("Simulated loadings") + ylab("") + ggtitle("Condition mode X1") + stat_cor()
-d = cbind(tensorMatrixData$D, result_rnd$Fac[[4]]) %>% as_tibble() %>% ggplot(aes(x=V2, y=V3)) + geom_point() + xlab("Simulated loadings") + ylab("") + ggtitle("Feature mode X2") + stat_cor()
-
-e = cbind(tensorMatrixData$A, result_rnd$Fac[[1]]) %>% as_tibble() %>% ggplot(aes(x=V1,y=V4)) + geom_point() + xlab("Simulated loadings") + ylab("CMTF component 2") + stat_cor()
-f = cbind(tensorMatrixData$B, result_rnd$Fac[[2]]) %>% as_tibble() %>% ggplot(aes(x=V1, y=V4)) + geom_point() + xlab("Simulated loadings") + ylab("") + stat_cor()
-g = cbind(tensorMatrixData$C, result_rnd$Fac[[3]]) %>% as_tibble() %>% ggplot(aes(x=V1,y=V4)) + geom_point() + xlab("Simulated loadings") + ylab("") + stat_cor()
-h = cbind(tensorMatrixData$D, result_rnd$Fac[[4]]) %>% as_tibble() %>% ggplot(aes(x=V1, y=V4)) + geom_point() + xlab("Simulated loadings") + ylab("") + stat_cor()
-
-ggarrange(a,b,c,d,e,f,g,h, nrow=2, ncol=4)
-```
-
-# Easy two-tensor case
+# General two-tensor case
 
 We create two tensor datasets sharing a subject mode with randomly initialized loadings corresponding to two components.
 
@@ -153,109 +131,4 @@ ggarrange(a,b,c,d,e,f,g,h,i,j, nrow=2, ncol=5)
 ```
 Note that negative correlations may be observed due to component flipping, which is similar to Principal Component Analysis and does not alter the description of the found subspace. There is also a difference in magnitude between the simulated components and the modelled components due to CMTF not penalizing the size of the vectors.
 
-A similar (but not inferior) solution can be found with randomly initialized vectors. Here we randomly initialize 10 models using one core due to limitations in package development for CRAN. Only the best model (the one with lowest f) will be returned.
-
-```{r run cmtf with random init two-tensor}
-result_rnd = cmtf_opt(twoTensorData$Z, 2, initialization="random", nstart=10)
-```
-
-For this result the loss is `r result_rnd$f`. This solution was found using `r result_rnd$iter` iterations. We will visually verify this result with the plot below.
-
-```{r plot result cmtf_random two-tensor}
-a = cbind(twoTensorData$A, result_rnd$Fac[[1]]) %>% as_tibble() %>% ggplot(aes(x=V1,y=V3)) + geom_point() + xlab("Simulation: component 1") + ylab("Model: component 1") + ggtitle("Subject mode (shared)") + stat_cor()
-b = cbind(twoTensorData$B, result_rnd$Fac[[2]]) %>% as_tibble() %>% ggplot(aes(x=V1, y=V3)) + geom_point() + xlab("Simulation: component 1") + ylab("Model: component 1") + ggtitle("Feature mode X1") + stat_cor()
-c = cbind(twoTensorData$C, result_rnd$Fac[[3]]) %>% as_tibble() %>% ggplot(aes(x=V1,y=V3)) + geom_point() + xlab("Simulation: component 1") + ylab("Model: component 1") + ggtitle("Condition mode X1") + stat_cor()
-d = cbind(twoTensorData$D, result_rnd$Fac[[4]]) %>% as_tibble() %>% ggplot(aes(x=V1, y=V3)) + geom_point() + xlab("Simulation: component 1") + ylab("Model: component 1") + ggtitle("Feature mode X2") + stat_cor()
-e = cbind(twoTensorData$E, result_rnd$Fac[[5]]) %>% as_tibble() %>% ggplot(aes(x=V1,y=V3)) + geom_point() + xlab("Simulation: component 1") + ylab("Model: component 1") + ggtitle("Condition mode X2") + stat_cor()
-
-f = cbind(twoTensorData$A, result_rnd$Fac[[1]]) %>% as_tibble() %>% ggplot(aes(x=V2,y=V4)) + geom_point() + xlab("Simulation: component 2") + ylab("Model: component 2") + stat_cor()
-g = cbind(twoTensorData$B, result_rnd$Fac[[2]]) %>% as_tibble() %>% ggplot(aes(x=V2, y=V4)) + geom_point() + xlab("Simulation: component 2") + ylab("Model: component 2") + stat_cor()
-h = cbind(twoTensorData$C, result_rnd$Fac[[3]]) %>% as_tibble() %>% ggplot(aes(x=V2,y=V4)) + geom_point() + xlab("Simulation: component 2") + ylab("Model: component 2") + stat_cor()
-i = cbind(twoTensorData$D, result_rnd$Fac[[4]]) %>% as_tibble() %>% ggplot(aes(x=V2, y=V4)) + geom_point() + xlab("Simulation: component 2") + ylab("Model: component 2") + stat_cor()
-j = cbind(twoTensorData$E, result_rnd$Fac[[5]]) %>% as_tibble() %>% ggplot(aes(x=V2,y=V4)) + geom_point() + xlab("Simulation: component 2") + ylab("Model: component 2") + stat_cor()
-
-ggarrange(a,b,c,d,e,f,g,h,i,j, nrow=2, ncol=5)
-```
-# Robustness towards noise
-
-We showcase the robustness of CMTF models by varying the amount of noise present in the data blocks from 0% up to 100%. For the purposes of this simulation we will use the two-tensor case, but the results are generalizable to any number of blocks with any number of modes.
-
-```{r simulate two-tensor data noisy}
-noises = seq(0.01, 100, 1) / 100
-
-set.seed(123)
-A = array(rnorm(108*2), c(108, 2))  # shared subject mode
-B = array(rnorm(100*2), c(100, 2))  # distinct feature mode of X1
-C = array(rnorm(10*2), c(10, 2))    # distinct condition mode of X1
-D = array(rnorm(100*2), c(100, 2))  # distinct feature mode of X2
-E = array(rnorm(10*2), c(10, 2))    # distinct condition mode of X2
-
-df1 = as.tensor(reinflateTensor(A, B, C))
-df1 = df1 / fnorm(df1)
-df2 = as.tensor(reinflateTensor(A, D, E))
-df2 = df2 / fnorm(df2)
-
-df1_noise = as.tensor(array(rnorm(108*100*10), c(108,100,10)))
-df1_noise = df1_noise / fnorm(df1_noise)
-df2_noise = as.tensor(array(rnorm(108*100*10), c(108,100,10)))
-df2_noise = df2_noise / fnorm(df2_noise)
-
-simulatedData = list()
-for(i in 1:length(noises)){
-  neededNoiseNorm = min(999, noises[i] / (1 - noises[i])) # correction to make the noise % behave as expected.
-  X1 = df1 + df1_noise * neededNoiseNorm
-  X2 = df2 + df2_noise * neededNoiseNorm
-  
-  datasets = list(X1@data, X2@data)
-  modes = list(c(1,2,3), c(1,4,5))
-  simulatedData[[i]] = setupCMTFdata(datasets, modes, normalize=TRUE) # normalize to norm 1
-}
-
-```
-
-We calculate cmtf models for every simulation using the "nvec" initialization to get a best initial guess. This may take a while to run.
-
-```{r run CMTF with nvec two-tensor noisy}
-CMTF_noise_results = list()
-for(i in 1:length(noises)){
-  #print(i)
-  CMTF_noise_results[[i]] = cmtf_opt(simulatedData[[i]], 2, initialization="nvec")
-}
-```
-
-We visualize the outcome loss value f for every model against the amount of noise we put in.
-
-```{r noise f visualization}
-fs = rep(500,length(noises))
-for(i in 1:length(noises)){
-  fs[i] = CMTF_noise_results[[i]]$f
-}
-
-cbind(noises, fs) %>% as_tibble() %>% mutate(noises=100*noises) %>% ggplot(aes(x=noises,y=fs)) + geom_line() + geom_point() + xlab("Amount of noise in X1 and X2 (%)") + ylab("Loss value of CMTF") + ggtitle("Two tensor noise sim test")
-```
-To highlight CMTF's strength in finding the underlying pattern in the data, we compare the 5% noise case with the 95% noise case.
-
-```{r noise comparison plot}
-a = cbind(A, CMTF_noise_results[[5]]$Fac[[1]], CMTF_noise_results[[95]]$Fac[[1]]) %>% as_tibble() %>% ggplot() + geom_point(aes(x=V1,y=V4,color="5%")) + geom_point(aes(x=V1,y=V6,color="95%"))+ ylab("CMTF component 1") + xlab("Simulated loadings") + ggtitle("Subject mode (shared)") + scale_color_manual(values=c("5%"="black", "95%"="red"))
-b = cbind(B, CMTF_noise_results[[5]]$Fac[[2]], CMTF_noise_results[[95]]$Fac[[2]]) %>% as_tibble() %>% ggplot() + geom_point(aes(x=V1,y=V4,color="5%")) + geom_point(aes(x=V1,y=V6,color="95%"))+ ylab("") + xlab("Simulated loadings") + ggtitle("Feature mode X1") + scale_color_manual(values=c("5%"="black", "95%"="red"))
-c = cbind(C, CMTF_noise_results[[5]]$Fac[[3]], CMTF_noise_results[[95]]$Fac[[3]]) %>% as_tibble() %>% ggplot() + geom_point(aes(x=V1,y=V4,color="5%")) + geom_point(aes(x=V1,y=V6,color="95%"))+ ylab("") + xlab("Simulated loadings") + ggtitle("Condition mode X1") + scale_color_manual(values=c("5%"="black", "95%"="red"))
-d = cbind(D, CMTF_noise_results[[5]]$Fac[[4]], CMTF_noise_results[[95]]$Fac[[4]]) %>% as_tibble() %>% ggplot() + geom_point(aes(x=V1,y=V4,color="5%")) + geom_point(aes(x=V1,y=V6,color="95%"))+ ylab("") + xlab("Simulated loadings") + ggtitle("Feature mode X2") + scale_color_manual(values=c("5%"="black", "95%"="red"))
-e = cbind(E, CMTF_noise_results[[5]]$Fac[[5]], CMTF_noise_results[[95]]$Fac[[5]]) %>% as_tibble() %>% ggplot() + geom_point(aes(x=V1,y=V4,color="5%")) + geom_point(aes(x=V1,y=V6,color="95%"))+ ylab("") + xlab("Simulated loadings") + ggtitle("Condition mode X2") + scale_color_manual(values=c("5%"="black", "95%"="red"))
-
-f = cbind(A, CMTF_noise_results[[5]]$Fac[[1]], CMTF_noise_results[[95]]$Fac[[1]]) %>% as_tibble() %>% ggplot() + geom_point(aes(x=V2,y=V3,color="5%")) + geom_point(aes(x=V2,y=V5,color="95%"))+ ylab("CMTF component 2") + xlab("Simulated loadings") + ggtitle("Subject mode (shared)") + scale_color_manual(values=c("5%"="black", "95%"="red"))
-g = cbind(B, CMTF_noise_results[[5]]$Fac[[2]], CMTF_noise_results[[95]]$Fac[[2]]) %>% as_tibble() %>% ggplot() + geom_point(aes(x=V2,y=V3,color="5%")) + geom_point(aes(x=V2,y=V5,color="95%"))+ ylab("") + xlab("Simulated loadings") + ggtitle("Feature mode X1") + scale_color_manual(values=c("5%"="black", "95%"="red"))
-h = cbind(C, CMTF_noise_results[[5]]$Fac[[3]], CMTF_noise_results[[95]]$Fac[[3]]) %>% as_tibble() %>% ggplot() + geom_point(aes(x=V2,y=V3,color="5%")) + geom_point(aes(x=V2,y=V5,color="95%"))+ ylab("") + xlab("Simulated loadings") + ggtitle("Condition mode X1") + scale_color_manual(values=c("5%"="black", "95%"="red"))
-i = cbind(D, CMTF_noise_results[[5]]$Fac[[4]], CMTF_noise_results[[95]]$Fac[[4]]) %>% as_tibble() %>% ggplot() + geom_point(aes(x=V2,y=V3,color="5%")) + geom_point(aes(x=V2,y=V5,color="95%"))+ ylab("") + xlab("Simulated loadings") + ggtitle("Feature mode X2") + scale_color_manual(values=c("5%"="black", "95%"="red"))
-j = cbind(E, CMTF_noise_results[[5]]$Fac[[5]], CMTF_noise_results[[95]]$Fac[[5]]) %>% as_tibble() %>% ggplot() + geom_point(aes(x=V2,y=V3,color="5%")) + geom_point(aes(x=V2,y=V5,color="95%"))+ ylab("") + xlab("Simulated loadings") + ggtitle("Condition mode X2") + scale_color_manual(values=c("5%"="black", "95%"="red"))
-
-ggarrange(a,b,c,d,e,f,g,h,i,j, nrow=2, ncol=5, common.legend=TRUE)
-# add FMS?
-```
-
-```{r temp}
-stuff = rep(500, length(noises))
-for(i in 1:length(noises)){
-  stuff[i] = simulatedData[[i]]$object[[1]]@data[1,1,1]
-}
-```
-# Matrix completion
+This concludes a brief introduction into applying cmtf_opt to various types of data. For a more in-depth analysis of robustness towards noise, we refer to Acar et al., 2011, which provides a framework that we replicate in the CMTF_noise_simulation vignette.
