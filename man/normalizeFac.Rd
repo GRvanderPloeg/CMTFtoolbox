@@ -16,9 +16,9 @@ List object of normalized Fac object and the extracted norms per component.
 Normalize all vectors in model output Fac object to norm 1.
 }
 \examples{
-A = array(rnorm(108*2), dim(108,2))
-B = array(rnorm(100*2), dim(100,2))
-C = array(rnorm(10*2), dim(10,2))
+A = array(rnorm(108*2), c(108,2))
+B = array(rnorm(100*2), c(100,2))
+C = array(rnorm(10*2), c(10,2))
 Fac = list(A,B,C)
 output = normalizeFac(Fac)
 }

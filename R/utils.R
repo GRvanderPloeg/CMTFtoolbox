@@ -70,6 +70,7 @@ fac_to_vect = function(Fac){
 #'
 #' @param vect Vectorized output of (a)cmtf
 #' @param Z Original Z input object (see [setupCMTFdata]).
+#' @param sortComponents Sort the order of the components by variation explained (default TRUE).
 #'
 #' @return Fac: list object with all loadings in all components per mode, ordered the same way as Z$modes.
 #' @export
@@ -85,8 +86,8 @@ fac_to_vect = function(Fac){
 #' modes = list(c(1,2,3), c(1,4,5))
 #' Z = setupCMTFdata(datasets, modes)
 #' result = cmtf_opt(Z, 2, initialization="random", max_iter = 2)
-#' Fac = vect_to_fac(result$par)
-vect_to_fac = function(vect, Z){
+#' Fac = vect_to_fac(result$par, Z)
+vect_to_fac = function(vect, Z, sortComponents=TRUE){
   numDatasets = length(Z$object)
   numModes = max(unlist(Z$modes))
   numComponents = length(vect) / sum(Z$sizes)
@@ -109,6 +110,28 @@ vect_to_fac = function(vect, Z){
       endIdx = startIdx + numDatasets - 1
       Fac[[numModes+1]][,r] = vect[startIdx:endIdx]
       startIdx = endIdx + 1
+    }
+  }
+
+
+  if(sortComponents == TRUE){
+
+    # Find variance explained per component
+    varExpsPerComp = rep(0, numComponents)
+    for(i in 1:numComponents){
+      compFac = list()
+      for(j in 1:numModes){
+        compFac[[j]] = Fac[[j]][,i]
+      }
+      varExps = calculateVarExp(compFac, Z)
+      varExpsPerComp[i] = mean(varExps)
+    }
+
+    sorting = sort(varExpsPerComp, decreasing=TRUE, index.return=TRUE)$ix
+
+    # sort Fac
+    for(i in 1:numModes){
+      Fac[[i]] = Fac[[i]][,sorting]
     }
   }
 
@@ -212,9 +235,9 @@ removeTwoNormCol = function(df){
 #' @export
 #'
 #' @examples
-#' A = array(rnorm(108*2), dim(108,2))
-#' B = array(rnorm(100*2), dim(100,2))
-#' C = array(rnorm(10*2), dim(10,2))
+#' A = array(rnorm(108*2), c(108,2))
+#' B = array(rnorm(100*2), c(100,2))
+#' C = array(rnorm(10*2), c(10,2))
 #' Fac = list(A,B,C)
 #' output = normalizeFac(Fac)
 normalizeFac = function(Fac){
@@ -236,4 +259,37 @@ normalizeFac = function(Fac){
   }
 
   return(list("Fac"=normalizedFac, "norms"=extractedNorms))
+}
+
+calculateVarExp = function(Fac, Z){
+  # acmtf not yet implemented
+  numModes = max(unlist(Z$modes))
+  numDatasets = length(Z$object)
+
+  reinflatedData = reinflateFac(Fac, Z, returnAsTensor=TRUE)
+  varExps = rep(0, numDatasets)
+  for(i in 1:numDatasets){
+    residuals = Z$object[[i]] - reinflatedData[[i]]
+    residualsMissing = Z$missing[[i]] * residuals
+    varExps[i] = 1 - ((rTensor::fnorm(residualsMissing)^2) / (rTensor::fnorm(Z$missing[[i]] * Z$object[[i]])^2))
+  }
+
+  return(varExps)
+}
+
+calcVarExpPerComponent = function(Fac, Z){
+  numComponents = ncol(Fac[[1]])
+  numModes = max(unlist(Z$modes))
+  numDatasets = length(Z$object)
+
+  varExpsPerComp = array(0L, c(numDatasets,numComponents))
+  for(i in 1:numComponents){
+    compFac = list()
+    for(j in 1:numModes){
+      compFac[[j]] = Fac[[j]][,i]
+    }
+    varExpsPerComp[,i] = calculateVarExp(compFac, Z)
+  }
+
+  return(varExpsPerComp)
 }

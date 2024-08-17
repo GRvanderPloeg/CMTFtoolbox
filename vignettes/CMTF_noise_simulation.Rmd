@@ -98,38 +98,49 @@ print(successRate(CMTF_025_over))
 print(successRate(CMTF_035))
 print(successRate(CMTF_035_over))
 ```
+
 ```{r FMS calculation}
 FMS_to_simulation = function(inputFac, Fac, modes){
   numComponents = ncol(Fac[[1]])
   numModes = max(unlist(modes))
+  normalizedInputFac = normalizeFac(inputFac)
+  normalizedFac = normalizeFac(Fac)
   
   FMS_result = 1:numComponents
   for(i in 1:numComponents){
     FMS = 1
-    ksi_input = 1
-    ksi_model = 1
+    ksi = 0
+    ksi_hat = 0
+    
     for(j in 1:numModes){
-      vect1 = inputFac[[j]][,i]
-      vect2 = Fac[[j]][,i]
-      norm_vect1 = norm(as.matrix(vect1),"F")
-      norm_vect2 = norm(as.matrix(vect2), "F")
-      
-      ksi_input = ksi_input * norm_vect1
-      ksi_model = ksi_model * norm_vect2
-      
-      vect1_normalized = vect1 / norm_vect1
-      vect2_normalized = vect2 / norm_vect2
-      
-      FMS = FMS * (t(vect1_normalized) %*% vect2_normalized)
+      vect1 = normalizedInputFac$Fac[[j]][,i]
+      vect2 = normalizedFac$Fac[[j]][,i]
+      FMS = FMS * (t(vect1) %*% vect2)
+      print(FMS)
     }
-    FMS_result[i] = (1 - ((abs(ksi_input - ksi_model)) / max(ksi_input, ksi_model))) * abs(FMS)
+    
+    ksi = ksi + normalizedInputFac$norms[i]
+    ksi_hat = ksi_hat + normalizedFac$norms[i]
+    ksi_term = ((abs(ksi - ksi_hat)) / max(ksi, ksi_hat))
+    
+    # print(FMS)
+    # print(ksi)
+    # print(ksi_hat)
+    # print(ksi_term)
+    # print("=======")
+    
+    FMS_result[i] = (1 - ksi_term) * abs(FMS)
   }
   return(min(FMS_result))
 }
 
 inputFac = list(A,B,C,D)
-Fac = vect_to_fac(CMTF_010[[1]]$par, Z_010)
-FMS_to_simulation(inputFac, Fac, Z_010$modes)
+
+result = 1:length(CMTF_010)
+for(i in 1:length(CMTF_010)){
+  result[i] =FMS_to_simulation(inputFac, vect_to_fac(CMTF_010[[i]]$par, Z_010), Z_010$modes)
+}
+
 ```
 ```{r small ksi test}
 output = normalizeFac(Fac)

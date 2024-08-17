@@ -18,6 +18,7 @@ cmtf_opt(
   grad_tol = 1e-08,
   nstart = 1,
   numCores = 1,
+  sortComponents = TRUE,
   allOutput = FALSE
 )
 }
@@ -55,6 +56,8 @@ vector. See the 'Convergence' section for details.}
 \item{nstart}{Number of models to produce (default 1). If set higher than one, the package will return the best fitted model.}
 
 \item{numCores}{Number of cores to use (default 1). If set higher than one, the package will attempt to run in parallel.}
+
+\item{sortComponents}{Sort the components in the output by descending order of variation explained.}
 }
 \value{
 List object, similar to \code{\link[mize:mize]{mize::mize()}} output. Also includes a Fac object of the model, which is a list of components per mode.

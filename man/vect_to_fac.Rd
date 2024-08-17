@@ -4,12 +4,14 @@
 \alias{vect_to_fac}
 \title{Helper function to convert vectorized output of (a)cmtf to a Fac list object with all loadings per mode.}
 \usage{
-vect_to_fac(vect, Z)
+vect_to_fac(vect, Z, sortComponents = TRUE)
 }
 \arguments{
 \item{vect}{Vectorized output of (a)cmtf}
 
 \item{Z}{Original Z input object (see \link{setupCMTFdata}).}
+
+\item{sortComponents}{Sort the order of the components by variation explained (default TRUE).}
 }
 \value{
 Fac: list object with all loadings in all components per mode, ordered the same way as Z$modes.
@@ -28,5 +30,5 @@ datasets = list(df1, df2)
 modes = list(c(1,2,3), c(1,4,5))
 Z = setupCMTFdata(datasets, modes)
 result = cmtf_opt(Z, 2, initialization="random", max_iter = 2)
-Fac = vect_to_fac(result$par)
+Fac = vect_to_fac(result$par, Z)
 }

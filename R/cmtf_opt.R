@@ -6,6 +6,7 @@
 #' @param initialization Initialization, either "random" (default) or "nvec" for numComponents components of the concatenated data using svd.
 #' @param nstart Number of models to produce (default 1). If set higher than one, the package will return the best fitted model.
 #' @param numCores Number of cores to use (default 1). If set higher than one, the package will attempt to run in parallel.
+#' @param sortComponents Sort the components in the output by descending order of variation explained.
 #'
 #' @return List object, similar to [mize::mize()] output. Also includes a Fac object of the model, which is a list of components per mode.
 #' @export
@@ -20,7 +21,7 @@
 #' modes = list(c(1,2,3), c(1,4,5))
 #' Z = setupCMTFdata(datasets, modes)
 #' model = cmtf_opt(Z, 1)
-cmtf_opt = function(Z, numComponents, initialization="random", cg_update="HS", line_search="MT", max_iter=10000, max_fn=10000, ls_max_fn=20, abs_tol=1e-8, rel_tol=1e-8, grad_tol=1e-8, nstart=1, numCores=1, allOutput=FALSE){
+cmtf_opt = function(Z, numComponents, initialization="random", cg_update="HS", line_search="MT", max_iter=10000, max_fn=10000, ls_max_fn=20, abs_tol=1e-8, rel_tol=1e-8, grad_tol=1e-8, nstart=1, numCores=1, sortComponents=TRUE, allOutput=FALSE){
   numModes = max(unlist(Z$modes))
   numDatasets = length(Z$object)
 
@@ -57,7 +58,7 @@ cmtf_opt = function(Z, numComponents, initialization="random", cg_update="HS", l
         bestObjective = output$f
       }
     }
-    bestModel$Fac = vect_to_fac(bestModel$par, Z)
+    bestModel$Fac = vect_to_fac(bestModel$par, Z, sortComponents=sortComponents)
 
     return(bestModel)
   }
