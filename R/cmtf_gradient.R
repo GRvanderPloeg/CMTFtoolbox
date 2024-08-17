@@ -2,7 +2,7 @@ cmtf_gradient = function(x, Z){
 
   numDatasets = length(Z$object)
   numModes = max(unlist(Z$modes))
-  Fac = vect_to_fac(x, Z)
+  Fac = vect_to_fac(x, Z, sortComponents=FALSE)
   reinflatedBlocks = reinflateFac(Fac, Z, returnAsTensor=TRUE)
   gradient = list()
 

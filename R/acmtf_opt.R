@@ -1,6 +1,7 @@
 #' Advanced coupled matrix and tensor factorizations
 #'
 #' @inherit cmtf_opt
+#' @inherit mize::mize
 #' @param alpha Scalar penalizing the components to be norm 1 (default 1).
 #' @param beta Vector of penalty values for each dataset, penalizing the lambda terms (default 1e-3).
 #' @param epsilon Scalar value to make it possible to compute the partial derivatives of lambda (default 1e-8).
@@ -18,7 +19,7 @@
 #' modes = list(c(1,2,3), c(1,4,5))
 #' Z = setupCMTFdata(datasets, modes)
 #' model = acmtf_opt(Z, 1)
-acmtf_opt = function(Z, numComponents, initialization="random", alpha=1, beta=rep(1e-3, length(Z$object)), epsilon=1e-8, maxit=2500, tol=1e-6, nstart=1, numCores=1){
+acmtf_opt = function(Z, numComponents, initialization="random", alpha=1, beta=rep(1e-3, length(Z$object)), epsilon=1e-8, max_iter=2500, step_tol=1e-6, nstart=1, numCores=1){
   numModes = max(unlist(Z$modes))
   numDatasets = length(Z$object)
 
@@ -30,7 +31,7 @@ acmtf_opt = function(Z, numComponents, initialization="random", alpha=1, beta=re
       opt=list("fn"=function(x){return(acmtf_fun(x,Z))}, "gr"=function(x){return(acmtf_gradient(x,Z))})
       init = CMTFtoolbox::initializeACMTF(Z, numComponents, initialization, output="vect")
       #model = optimx::Rcgmin(init, function(x){return(acmtf_fun(x,Z))}, function(x){return(acmtf_gradient(x,Z))}, control=control)
-      model = mize::mize(init, opt, max_iter=maxit, step_tol=tol, method="CG", line_search="MT")
+      model = mize::mize(init, opt, max_iter=max_iter, step_tol=step_tol, method="CG", line_search="MT")
     }
     parallel::stopCluster(cl)
   } else{
@@ -39,7 +40,7 @@ acmtf_opt = function(Z, numComponents, initialization="random", alpha=1, beta=re
       opt=list("fn"=function(x){return(acmtf_fun(x,Z))}, "gr"=function(x){return(acmtf_gradient(x,Z))})
       init = initializeACMTF(Z, numComponents, initialization, output="vect")
       #models[[i]] = optimx::Rcgmin(init, function(x){return(acmtf_fun(x,Z))}, function(x){return(acmtf_gradient(x,Z))}, control=control)
-      models[[i]] = mize::mize(init, opt, max_iter=maxit, step_tol=tol, method="CG", line_search="MT")
+      models[[i]] = mize::mize(init, opt, max_iter=max_iter, step_tol=step_tol, method="CG", line_search="MT")
     }
   }
 

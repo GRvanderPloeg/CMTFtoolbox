@@ -98,7 +98,7 @@ test_that("fac_to_vect and vect_to_fac work correctly in the CMTF case", {
   init = initializeCMTF(Z, 2)
 
   vect = fac_to_vect(init)
-  Fac = vect_to_fac(fac_to_vect(init), Z)
+  Fac = vect_to_fac(fac_to_vect(init), Z, sortComponents=FALSE)
   expect_equal(Fac, init)
 })
 
@@ -113,16 +113,25 @@ test_that("fac_to_vect and vect_to_fac work correctly in the ACMTF case", {
   init = initializeACMTF(Z, 2)
 
   vect = fac_to_vect(init)
-  Fac = vect_to_fac(fac_to_vect(init), Z)
+  Fac = vect_to_fac(fac_to_vect(init), Z, sortComponents=FALSE)
   expect_equal(Fac, init)
 })
 
-test_that("vect_to_fac sorts components correctly", {
-  set.seed(123)
+test_that("vect_to_fac resorts components", {
+  set.seed(456)
   A = array(rnorm(108*5), c(108, 5))
   B = array(rnorm(100*5), c(100, 5))
   C = array(rnorm(10*5), c(10, 5))
   D = array(rnorm(100*5), c(100,5))
+
+  # Inject an ordering
+  componentSizes = c(3, 5, 9, 8, 1)
+  for(i in 1:5){
+    A[,i] = A[,i] * componentSizes[i]
+    B[,i] = B[,i] * componentSizes[i]
+    C[,i] = C[,i] * componentSizes[i]
+    D[,i] = D[,i] * componentSizes[i]
+  }
 
   df1 = reinflateTensor(A, B, C)
   df2 = reinflateMatrix(A, D)
@@ -132,7 +141,7 @@ test_that("vect_to_fac sorts components correctly", {
 
   result1 = cmtf_opt(Z, 5, initialization="nvec", max_iter=5, sortComponents=FALSE)
   result2 = cmtf_opt(Z, 5, initialization="nvec", max_iter=5, sortComponents=TRUE)
-  inputFac = list(A,B,C,D)
+  expect_false(all(unlist(result1$Fac) == unlist(result2$Fac)))
 })
 
 test_that("removeTwoNormCol indeed removed the two-norm", {
@@ -225,5 +234,58 @@ test_that("calculateVarExp has an upper bound of one", {
 
   varExps = calculateVarExp(result$Fac, Z)
 
+  expect_true(all(varExps <= 1))
+})
+
+test_that("calcVarExpPerComponent does not throw errors", {
+  set.seed(123)
+  A = array(rnorm(108*2), c(108, 2))
+  B = array(rnorm(100*2), c(100, 2))
+  C = array(rnorm(10*2), c(10, 2))
+  D = array(rnorm(100*2), c(100,2))
+
+  df1 = reinflateTensor(A, B, C)
+  df2 = reinflateMatrix(A, D)
+  datasets = list(df1, df2)
+  modes = list(c(1,2,3), c(1,4))
+  Z = setupCMTFdata(datasets, modes)
+
+  result = cmtf_opt(Z, 2, initialization="nvec", max_iter=5)
+  expect_no_error(calcVarExpPerComponent(result$Fac, Z))
+})
+
+test_that("calcVarExpPerComponent values are minimum zero", {
+  set.seed(123)
+  A = array(rnorm(108*2), c(108, 2))
+  B = array(rnorm(100*2), c(100, 2))
+  C = array(rnorm(10*2), c(10, 2))
+  D = array(rnorm(100*2), c(100,2))
+
+  df1 = reinflateTensor(A, B, C)
+  df2 = reinflateMatrix(A, D)
+  datasets = list(df1, df2)
+  modes = list(c(1,2,3), c(1,4))
+  Z = setupCMTFdata(datasets, modes)
+
+  result = cmtf_opt(Z, 2, initialization="nvec", max_iter=5)
+  varExps = calcVarExpPerComponent(result$Fac, Z)
+  expect_true(all(varExps >= 0))
+})
+
+test_that("calcVarExpPerComponent values are maximum one", {
+  set.seed(123)
+  A = array(rnorm(108*2), c(108, 2))
+  B = array(rnorm(100*2), c(100, 2))
+  C = array(rnorm(10*2), c(10, 2))
+  D = array(rnorm(100*2), c(100,2))
+
+  df1 = reinflateTensor(A, B, C)
+  df2 = reinflateMatrix(A, D)
+  datasets = list(df1, df2)
+  modes = list(c(1,2,3), c(1,4))
+  Z = setupCMTFdata(datasets, modes)
+
+  result = cmtf_opt(Z, 2, initialization="nvec", max_iter=5)
+  varExps = calcVarExpPerComponent(result$Fac, Z)
   expect_true(all(varExps <= 1))
 })

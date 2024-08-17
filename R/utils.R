@@ -87,7 +87,7 @@ fac_to_vect = function(Fac){
 #' Z = setupCMTFdata(datasets, modes)
 #' result = cmtf_opt(Z, 2, initialization="random", max_iter = 2)
 #' Fac = vect_to_fac(result$par, Z)
-vect_to_fac = function(vect, Z, sortComponents=TRUE){
+vect_to_fac = function(vect, Z, sortComponents=FALSE){
   numDatasets = length(Z$object)
   numModes = max(unlist(Z$modes))
   numComponents = length(vect) / sum(Z$sizes)

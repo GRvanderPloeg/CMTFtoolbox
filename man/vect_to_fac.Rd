@@ -4,7 +4,7 @@
 \alias{vect_to_fac}
 \title{Helper function to convert vectorized output of (a)cmtf to a Fac list object with all loadings per mode.}
 \usage{
-vect_to_fac(vect, Z, sortComponents = TRUE)
+vect_to_fac(vect, Z, sortComponents = FALSE)
 }
 \arguments{
 \item{vect}{Vectorized output of (a)cmtf}
