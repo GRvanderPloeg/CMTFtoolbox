@@ -4,13 +4,15 @@
 \alias{normalizeFac}
 \title{Normalize all vectors in model output Fac object to norm 1.}
 \usage{
-normalizeFac(Fac)
+normalizeFac(Fac, modes)
 }
 \arguments{
 \item{Fac}{List object with all components per mode per item.}
+
+\item{modes}{List object with modes per dataset (see also \code{\link[=setupCMTFdata]{setupCMTFdata()}})}
 }
 \value{
-List object of normalized Fac object and the extracted norms per component.
+List object of normalized Fac object, the extracted norms per loading vector per component, and the norms per dataset per component.
 }
 \description{
 Normalize all vectors in model output Fac object to norm 1.
@@ -19,6 +21,8 @@ Normalize all vectors in model output Fac object to norm 1.
 A = array(rnorm(108*2), c(108,2))
 B = array(rnorm(100*2), c(100,2))
 C = array(rnorm(10*2), c(10,2))
-Fac = list(A,B,C)
-output = normalizeFac(Fac)
+D = array(rnorm(100*2), c(100,2))
+Fac = list(A,B,C, D)
+modes = list(c(1,2,3), c(1,4))
+output = normalizeFac(Fac, modes)
 }

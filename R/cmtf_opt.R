@@ -6,7 +6,7 @@
 #' @param initialization Initialization, either "random" (default) or "nvec" for numComponents components of the concatenated data using svd.
 #' @param nstart Number of models to produce (default 1). If set higher than one, the package will return the best fitted model.
 #' @param numCores Number of cores to use (default 1). If set higher than one, the package will attempt to run in parallel.
-#' @param sortComponents Sort the components in the output by descending order of variation explained. Ignored if nstart>1.
+#' @param sortComponents Sort the components in the output by descending order of variation explained.
 #' @param allOutput Return all created models. Ignored if nstart=1.
 #'
 #' @return List object, similar to [mize::mize()] output. Also includes a Fac object of the model, which is a list of components per mode.
@@ -47,7 +47,12 @@ cmtf_opt = function(Z, numComponents, initialization="random", cg_update="HS", l
 
   # Return all models if specified, otherwise return only the best model
   if(allOutput == TRUE){
-    return(models)
+    output = list()
+    for(i in 1:nstart){
+      output[[i]] = models[[i]]
+      output[[i]]$Fac = vect_to_fac(models[[i]]$par, Z, sortComponents=sortComponents)
+    }
+    return(output)
   }
   else{
     bestModel = 0

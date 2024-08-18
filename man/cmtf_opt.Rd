@@ -57,7 +57,7 @@ vector. See the 'Convergence' section for details.}
 
 \item{numCores}{Number of cores to use (default 1). If set higher than one, the package will attempt to run in parallel.}
 
-\item{sortComponents}{Sort the components in the output by descending order of variation explained. Ignored if nstart>1.}
+\item{sortComponents}{Sort the components in the output by descending order of variation explained.}
 
 \item{allOutput}{Return all created models. Ignored if nstart=1.}
 }

@@ -230,35 +230,45 @@ removeTwoNormCol = function(df){
 #' Normalize all vectors in model output Fac object to norm 1.
 #'
 #' @param Fac List object with all components per mode per item.
+#' @param modes List object with modes per dataset (see also [setupCMTFdata()])
 #'
-#' @return List object of normalized Fac object and the extracted norms per component.
+#' @return List object of normalized Fac object, the extracted norms per loading vector per component, and the norms per dataset per component.
 #' @export
 #'
 #' @examples
 #' A = array(rnorm(108*2), c(108,2))
 #' B = array(rnorm(100*2), c(100,2))
 #' C = array(rnorm(10*2), c(10,2))
-#' Fac = list(A,B,C)
-#' output = normalizeFac(Fac)
-normalizeFac = function(Fac){
+#' D = array(rnorm(100*2), c(100,2))
+#' Fac = list(A,B,C, D)
+#' modes = list(c(1,2,3), c(1,4))
+#' output = normalizeFac(Fac, modes)
+normalizeFac = function(Fac, modes){
   numComponents = ncol(Fac[[1]])
   numModes = length(Fac)
+  numDatasets = length(modes)
+  normalizedFac = list()
 
-  normalizedFac = Fac
-  extractedNorms = 1:numComponents
+  # Find norms per component in each mode
+  extractedNorms = array(0L, c(numModes, numComponents))
+  for(i in 1:numModes){
+    extractedNorms[i,] = apply(Fac[[i]], 2, function(x){norm(as.matrix(x), "F")})
+    normalizedFac[[i]] = sweep(Fac[[i]], 2, extractedNorms[i,], FUN="/")
+  }
 
+  # Find norms per component for each dataset
+  outputNorms = array(1L, c(numDatasets, numComponents))
   for(i in 1:numComponents){
-    extractedNorms[i] = 1
-    for(j in 1:numModes){
-      vect = Fac[[j]][,i]
-      norm_vect = norm(as.matrix(vect), "F")
-
-      normalizedFac[[j]][,i] = vect / norm_vect
-      extractedNorms[i] = extractedNorms[i] * norm_vect
+    for(j in 1:numDatasets){
+      relevantModes = modes[[j]]
+      for(k in 1:length(relevantModes)){
+        mode = relevantModes[k]
+        outputNorms[j,i] = outputNorms[j,i] * extractedNorms[mode,i]
+      }
     }
   }
 
-  return(list("Fac"=normalizedFac, "norms"=extractedNorms))
+  return(list("Fac"=normalizedFac, "normsPerDataset"=outputNorms, "normsPerLoading"=extractedNorms))
 }
 
 calculateVarExp = function(Fac, Z){

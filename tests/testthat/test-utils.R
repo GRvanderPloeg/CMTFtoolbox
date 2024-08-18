@@ -154,26 +154,76 @@ test_that("normalizeFac throws no errors", {
   A = array(rnorm(108*2), c(108,2))
   B = array(rnorm(100*2), c(100,2))
   C = array(rnorm(10*2), c(10,2))
-  Fac = list(A,B,C)
-  expect_no_error(normalizeFac(Fac))
+  D = array(rnorm(100*2), c(100,2))
+  Fac = list(A,B,C,D)
+  modes = list(c(1,2,3), c(1,4))
+  expect_no_error(normalizeFac(Fac, modes))
 })
 
 test_that("normalizeFac indeed normalized the factors", {
   A = array(rnorm(108*2), c(108,2))
   B = array(rnorm(100*2), c(100,2))
   C = array(rnorm(10*2), c(10,2))
-  Fac = list(A,B,C)
-  output = normalizeFac(Fac)
+  D = array(rnorm(100*2), c(100,2))
+  Fac = list(A,B,C,D)
+  modes = list(c(1,2,3), c(1,4))
+  output = normalizeFac(Fac, modes)
   expect_equal(apply(output$Fac[[1]], 2, function(x){norm(as.matrix(x),"F")}), c(1,1))
 })
 
-test_that("normalizeFac output dimensions are the same as the input", {
+test_that("normalizeFac$Fac output dimensions are the same as the input", {
   A = array(rnorm(108*2), c(108,2))
   B = array(rnorm(100*2), c(100,2))
   C = array(rnorm(10*2), c(10,2))
-  Fac = list(A,B,C)
-  output = normalizeFac(Fac)
+  D = array(rnorm(100*2), c(100,2))
+  Fac = list(A,B,C,D)
+  modes = list(c(1,2,3), c(1,4))
+  output = normalizeFac(Fac, modes)
   expect_equal(lapply(Fac, dim), lapply(output$Fac, dim))
+})
+
+test_that("normalizeFac$normsPerDataset output dimensions are correct", {
+  A = array(rnorm(108*2), c(108,2))
+  B = array(rnorm(100*2), c(100,2))
+  C = array(rnorm(10*2), c(10,2))
+  D = array(rnorm(100*2), c(100,2))
+  Fac = list(A,B,C,D)
+  modes = list(c(1,2,3), c(1,4))
+  output = normalizeFac(Fac, modes)
+  expect_equal(dim(output$normsPerDataset), c(2,2))
+})
+
+test_that("normalizeFac$normsPerDataset norms are minimum 1", {
+  A = array(rnorm(108*2), c(108,2))
+  B = array(rnorm(100*2), c(100,2))
+  C = array(rnorm(10*2), c(10,2))
+  D = array(rnorm(100*2), c(100,2))
+  Fac = list(A,B,C,D)
+  modes = list(c(1,2,3), c(1,4))
+  output = normalizeFac(Fac, modes)
+  expect_true(all(output$normsPerDataset >= 1))
+})
+
+test_that("normalizeFac$normsPerLoading output dimensions are correct", {
+  A = array(rnorm(108*2), c(108,2))
+  B = array(rnorm(100*2), c(100,2))
+  C = array(rnorm(10*2), c(10,2))
+  D = array(rnorm(100*2), c(100,2))
+  Fac = list(A,B,C,D)
+  modes = list(c(1,2,3), c(1,4))
+  output = normalizeFac(Fac, modes)
+  expect_equal(dim(output$normsPerLoading), c(4,2))
+})
+
+test_that("normalizeFac$normsPerLoading norms are minimum 1", {
+  A = array(rnorm(108*2), c(108,2))
+  B = array(rnorm(100*2), c(100,2))
+  C = array(rnorm(10*2), c(10,2))
+  D = array(rnorm(100*2), c(100,2))
+  Fac = list(A,B,C,D)
+  modes = list(c(1,2,3), c(1,4))
+  output = normalizeFac(Fac, modes)
+  expect_true(all(output$normsPerLoading >= 1))
 })
 
 test_that("calculateVarExp does not throw errors", {
