@@ -66,11 +66,11 @@ fac_to_vect = function(Fac){
   return(unlist(Fac))
 }
 
-#' Helper function to convert vectorized output of (a)cmtf to a Fac list object with all loadings per mode.
+#' Convert vectorized output of (a)cmtf to a Fac list object with all loadings per mode.
 #'
 #' @param vect Vectorized output of (a)cmtf
 #' @param Z Original Z input object (see [setupCMTFdata]).
-#' @param sortComponents Sort the order of the components by variation explained (default TRUE).
+#' @param sortComponents Sort the order of the components by variation explained (default FALSE).
 #'
 #' @return Fac: list object with all loadings in all components per mode, ordered the same way as Z$modes.
 #' @export

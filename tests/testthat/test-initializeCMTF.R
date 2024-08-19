@@ -22,6 +22,19 @@ test_that("max(modes) number of initialized components are returned", {
   expect_equal(length(result), 5)
 })
 
+test_that("randomly initialized components are different between runs", {
+  I = 108
+  J = 100
+  K = 10
+  df = array(rnorm(I*J*K), c(I,J,K))
+  datasets = list(df, df)
+  modes = list(c(1,2,3), c(1,4,5))
+  Z = setupCMTFdata(datasets, modes)
+  result1 = initializeCMTF(Z, 1, initialization="random")
+  result2 = initializeCMTF(Z, 1, initialization="random")
+  expect_false(all(result1[[1]] == result2[[1]]))
+})
+
 test_that("the correct mode 1 components are found using nvecs", {
   A = array(rnorm(108))
   B = array(rnorm(100*2), c(100, 2))

@@ -9,7 +9,7 @@
 #' @param sortComponents Sort the components in the output by descending order of variation explained.
 #' @param allOutput Return all created models. Ignored if nstart=1.
 #'
-#' @return List object, similar to [mize::mize()] output. Also includes a Fac object of the model, which is a list of components per mode.
+#' @return List object, similar to [mize::mize()] output. Includes a Fac object of the model, which is a list of components per mode. Also includes an init object giving the initialized input vectors.
 #' @export
 #' @importFrom foreach %dopar%
 #'
@@ -26,22 +26,26 @@ cmtf_opt = function(Z, numComponents, initialization="random", cg_update="HS", l
   numModes = max(unlist(Z$modes))
   numDatasets = length(Z$object)
 
+  # Prepare initialization outside of the main loop to allow it as output
+  inits = list()
+  for(i in 1:nstart){
+    inits[[i]] = initializeCMTF(Z, numComponents, initialization, output="vect")
+  }
+
   # Create nstart models, in parallel if requested
   if((numCores > 1) & (nstart > 1)){
     cl = parallel::makeCluster(numCores)
     doParallel::registerDoParallel(cl)
     models = foreach::foreach(i=1:nstart) %dopar% {
       opt = list("fn"=function(x){return(cmtf_fun(x,Z))}, "gr"=function(x){return(cmtf_gradient(x,Z))})
-      init = CMTFtoolbox::initializeCMTF(Z, numComponents, initialization, output="vect")
-      model = mize::mize(init, opt, max_iter=max_iter, max_fn=max_fn, ls_max_fn=ls_max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search)
+      model = mize::mize(inits[[i]], opt, max_iter=max_iter, max_fn=max_fn, ls_max_fn=ls_max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search)
     }
     parallel::stopCluster(cl)
   } else{
     models = list()
     for(i in 1:nstart){
       opt = list("fn"=function(x){return(cmtf_fun(x,Z))}, "gr"=function(x){return(cmtf_gradient(x,Z))})
-      init = initializeCMTF(Z, numComponents, initialization, output="vect")
-      models[[i]] = mize::mize(init, opt, max_iter=max_iter, max_fn=max_fn, ls_max_fn=ls_max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search)
+      models[[i]] = mize::mize(inits[[i]], opt, max_iter=max_iter, max_fn=max_fn, ls_max_fn=ls_max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search)
     }
   }
 
@@ -51,20 +55,24 @@ cmtf_opt = function(Z, numComponents, initialization="random", cg_update="HS", l
     for(i in 1:nstart){
       output[[i]] = models[[i]]
       output[[i]]$Fac = vect_to_fac(models[[i]]$par, Z, sortComponents=sortComponents)
+      output[[i]]$init = vect_to_fac(inits[[i]], Z, sortComponents=sortComponents)
     }
     return(output)
   }
   else{
     bestModel = 0
     bestObjective = Inf
+    bestInit = NA
     for(i in 1:nstart){
       output = models[[i]]
       if(output$f <= bestObjective){
         bestModel = output
         bestObjective = output$f
+        bestInit = inits[[i]]
       }
     }
     bestModel$Fac = vect_to_fac(bestModel$par, Z, sortComponents=sortComponents)
+    bestModel$init = vect_to_fac(bestInit, Z, sortComponents=sortComponents)
 
     return(bestModel)
   }
