@@ -22,7 +22,7 @@ cmtf_gradient = function(x, Z){
 
         if(length(modes) == 3){
           gradientMode = (unfoldedXhat - unfoldedX)@data %*% multiway::krprod(Fac[[otherModes[2]]], Fac[[otherModes[1]]])
-        } else if(length(modes) == 2){
+        } else if((length(modes) == 2)){
           gradientMode = (unfoldedXhat - unfoldedX)@data %*% Fac[[otherModes[1]]]
         }
         else{

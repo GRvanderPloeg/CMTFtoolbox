@@ -1,9 +1,15 @@
 #' Coupled matrix and tensor factorizations
 #'
-#' @inherit mize::mize
 #' @param Z Combined dataset and mode object as produced by [setupCMTFdata()].
 #' @param numComponents Number of components
 #' @param initialization Initialization, either "random" (default) or "nvec" for numComponents components of the concatenated data using svd.
+#' @param cg_update Update method for the conjugate gradient algorithm, see [mize::mize()] for the options (default="HS", Hestenes-Steifel).
+#' @param line_search Line search algorithm to use, see [mize::mize()] for the options (default="MT", More-Thuente).
+#' @param max_iter Maximum number of iterations.
+#' @param max_fn Maximum number of function evaluations.
+#' @param abs_tol Function tolerance criterion for convergence.
+#' @param rel_tol Relative function tolerance criterion for convergence.
+#' @param grad_tol Absolute tolerence for the l2-norm of the gradient vector.
 #' @param nstart Number of models to produce (default 1). If set higher than one, the package will return the best fitted model.
 #' @param numCores Number of cores to use (default 1). If set higher than one, the package will attempt to run in parallel.
 #' @param sortComponents Sort the components in the output by descending order of variation explained.
@@ -22,7 +28,7 @@
 #' modes = list(c(1,2,3), c(1,4,5))
 #' Z = setupCMTFdata(datasets, modes)
 #' model = cmtf_opt(Z, 1)
-cmtf_opt = function(Z, numComponents, initialization="random", cg_update="HS", line_search="MT", max_iter=10000, max_fn=10000, ls_max_fn=20, abs_tol=1e-8, rel_tol=1e-8, grad_tol=1e-8, nstart=1, numCores=1, sortComponents=TRUE, allOutput=FALSE){
+cmtf_opt = function(Z, numComponents, initialization="random", cg_update="HS", line_search="MT", max_iter=10000, max_fn=10000, abs_tol=1e-8, rel_tol=1e-8, grad_tol=1e-8, nstart=1, numCores=1, sortComponents=TRUE, allOutput=FALSE){
   numModes = max(unlist(Z$modes))
   numDatasets = length(Z$object)
 
@@ -38,14 +44,14 @@ cmtf_opt = function(Z, numComponents, initialization="random", cg_update="HS", l
     doParallel::registerDoParallel(cl)
     models = foreach::foreach(i=1:nstart) %dopar% {
       opt = list("fn"=function(x){return(cmtf_fun(x,Z))}, "gr"=function(x){return(cmtf_gradient(x,Z))})
-      model = mize::mize(inits[[i]], opt, max_iter=max_iter, max_fn=max_fn, ls_max_fn=ls_max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search)
+      model = mize::mize(inits[[i]], opt, max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search)
     }
     parallel::stopCluster(cl)
   } else{
     models = list()
     for(i in 1:nstart){
       opt = list("fn"=function(x){return(cmtf_fun(x,Z))}, "gr"=function(x){return(cmtf_gradient(x,Z))})
-      models[[i]] = mize::mize(inits[[i]], opt, max_iter=max_iter, max_fn=max_fn, ls_max_fn=ls_max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search)
+      models[[i]] = mize::mize(inits[[i]], opt, max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search)
     }
   }
 

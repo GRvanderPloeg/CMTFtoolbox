@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{vect_to_fac}
 \alias{vect_to_fac}
-\title{Helper function to convert vectorized output of (a)cmtf to a Fac list object with all loadings per mode.}
+\title{Convert vectorized output of (a)cmtf to a Fac list object with all loadings per mode.}
 \usage{
 vect_to_fac(vect, Z, sortComponents = FALSE)
 }
@@ -11,13 +11,13 @@ vect_to_fac(vect, Z, sortComponents = FALSE)
 
 \item{Z}{Original Z input object (see \link{setupCMTFdata}).}
 
-\item{sortComponents}{Sort the order of the components by variation explained (default TRUE).}
+\item{sortComponents}{Sort the order of the components by variation explained (default FALSE).}
 }
 \value{
 Fac: list object with all loadings in all components per mode, ordered the same way as Z$modes.
 }
 \description{
-Helper function to convert vectorized output of (a)cmtf to a Fac list object with all loadings per mode.
+Convert vectorized output of (a)cmtf to a Fac list object with all loadings per mode.
 }
 \examples{
 A = array(rnorm(108*2), c(108, 2))
