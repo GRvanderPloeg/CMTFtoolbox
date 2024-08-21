@@ -27,7 +27,7 @@
 #' datasets = list(df, df)
 #' modes = list(c(1,2,3), c(1,4,5))
 #' Z = setupCMTFdata(datasets, modes)
-#' model = cmtf_opt(Z, 1)
+#' model = cmtf_opt(Z, 1, rel_tol=1e-4) # quick convergence for example only
 cmtf_opt = function(Z, numComponents, initialization="random", cg_update="HS", line_search="MT", max_iter=10000, max_fn=10000, abs_tol=1e-8, rel_tol=1e-8, grad_tol=1e-8, nstart=1, numCores=1, sortComponents=TRUE, allOutput=FALSE){
   numModes = max(unlist(Z$modes))
   numDatasets = length(Z$object)
@@ -42,7 +42,7 @@ cmtf_opt = function(Z, numComponents, initialization="random", cg_update="HS", l
   if((numCores > 1) & (nstart > 1)){
     cl = parallel::makeCluster(numCores)
     doParallel::registerDoParallel(cl)
-    models = foreach::foreach(i=1:nstart, .verbose=TRUE, .packages=c("CMTFtoolbox", "mize")) %dopar% {
+    models = foreach::foreach(i=1:nstart) %dopar% {
       model = mize::mize(par=inits[[i]], fg=list("fn"=function(x){return(CMTFtoolbox::cmtf_fun(x,Z))}, "gr"=function(x){return(CMTFtoolbox::cmtf_gradient(x,Z))}), max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search)
     }
     parallel::stopCluster(cl)
@@ -52,7 +52,7 @@ cmtf_opt = function(Z, numComponents, initialization="random", cg_update="HS", l
       models[[i]] = mize::mize(par=inits[[i]], fg=list("fn"=function(x){return(CMTFtoolbox::cmtf_fun(x,Z))}, "gr"=function(x){return(CMTFtoolbox::cmtf_gradient(x,Z))}), max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search)
     }
   }
-  print(models)
+
   # Return all models if specified, otherwise return only the best model
   if(allOutput == TRUE){
     output = list()

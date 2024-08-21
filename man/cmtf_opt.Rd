@@ -64,5 +64,5 @@ df = array(rnorm(I*J*K), c(I,J,K))
 datasets = list(df, df)
 modes = list(c(1,2,3), c(1,4,5))
 Z = setupCMTFdata(datasets, modes)
-model = cmtf_opt(Z, 1)
+model = cmtf_opt(Z, 1, rel_tol=1e-4) # quick convergence for example only
 }
