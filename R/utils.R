@@ -113,7 +113,6 @@ vect_to_fac = function(vect, Z, sortComponents=FALSE){
     }
   }
 
-
   if(sortComponents == TRUE){
 
     # Find variance explained per component
@@ -187,23 +186,33 @@ reinflateMatrix = function(A, B){
 }
 
 reinflateFac = function(Fac, Z, returnAsTensor=FALSE){
+  Fac = lapply(Fac, as.matrix) # Cast to matrix for correct indexation in the one-component case.
   numDatasets = length(Z$object)
   numModes = max(unlist(Z$modes))
+  numComponents = ncol(Fac[[1]])
   reinflatedFac = list()
+
+  # Check for ACMTF case
+  ACMTFcase = FALSE
+  if(length(Fac) > numModes){
+    ACMTFcase = TRUE
+  }
 
   for(p in 1:numDatasets){
     modes = Z$modes[[p]]
+    componentsToSum = list()
+    reinflatedBlock = array(0L, dim(Z$object[[p]]))
 
-    if(length(modes) == 2){
-      reinflatedBlock = reinflateMatrix(Fac[[modes[1]]], Fac[[modes[2]]])
-    } else if(length(modes) == 3){
-      reinflatedBlock = reinflateTensor(Fac[[modes[1]]], Fac[[modes[2]]], Fac[[modes[[3]]]])
-    } else{
-      stop("Reinflation of blocks of higher modes than 3 is not yet implemented.")
-    }
+    for(i in 1:numComponents){
+      lambda = ifelse(ACMTFcase, Fac[[numModes+1]][p,i], 1) # Check for ACMTF model lambdas, otherwise lambda=1
 
-    if(length(Fac) > numModes){ # then we are dealing with an ACMTF model
-      reinflatedBlock = reinflatedBlock * Fac[[numModes+1]][p] # multiply with lambda
+      if(length(modes) == 3){
+        reinflatedBlock = reinflatedBlock + lambda * reinflateTensor(Fac[[modes[1]]][,i], Fac[[modes[2]]][,i], Fac[[modes[3]]][,i])
+      } else if(length(modes) == 2){
+        reinflatedBlock = reinflatedBlock + lambda * reinflateMatrix(Fac[[modes[1]]][,i], Fac[[modes[2]]][,i])
+      } else{
+        stop("Reinflation of blocks of higher modes than 3 is not yet implemented.")
+      }
     }
 
     if(returnAsTensor == TRUE){
@@ -218,12 +227,8 @@ reinflateFac = function(Fac, Z, returnAsTensor=FALSE){
 }
 
 removeTwoNormCol = function(df){
-  result = array(0L, dim(df))
-
-  for(i in 1:ncol(df)){
-    result[,i] = df[,i] / norm(as.matrix(df[,i]), "2")
-  }
-
+  norms = apply(df, 2, function(x){norm(as.matrix(x), "2")})
+  result = sweep(df, 2, norms, FUN="/")
   return(result)
 }
 

@@ -42,19 +42,17 @@ cmtf_opt = function(Z, numComponents, initialization="random", cg_update="HS", l
   if((numCores > 1) & (nstart > 1)){
     cl = parallel::makeCluster(numCores)
     doParallel::registerDoParallel(cl)
-    models = foreach::foreach(i=1:nstart) %dopar% {
-      opt = list("fn"=function(x){return(cmtf_fun(x,Z))}, "gr"=function(x){return(cmtf_gradient(x,Z))})
-      model = mize::mize(inits[[i]], opt, max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search)
+    models = foreach::foreach(i=1:nstart, .verbose=TRUE, .packages=c("CMTFtoolbox", "mize")) %dopar% {
+      model = mize::mize(par=inits[[i]], fg=list("fn"=function(x){return(CMTFtoolbox::cmtf_fun(x,Z))}, "gr"=function(x){return(CMTFtoolbox::cmtf_gradient(x,Z))}), max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search)
     }
     parallel::stopCluster(cl)
   } else{
     models = list()
     for(i in 1:nstart){
-      opt = list("fn"=function(x){return(cmtf_fun(x,Z))}, "gr"=function(x){return(cmtf_gradient(x,Z))})
-      models[[i]] = mize::mize(inits[[i]], opt, max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search)
+      models[[i]] = mize::mize(par=inits[[i]], fg=list("fn"=function(x){return(CMTFtoolbox::cmtf_fun(x,Z))}, "gr"=function(x){return(CMTFtoolbox::cmtf_gradient(x,Z))}), max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search)
     }
   }
-
+  print(models)
   # Return all models if specified, otherwise return only the best model
   if(allOutput == TRUE){
     output = list()
