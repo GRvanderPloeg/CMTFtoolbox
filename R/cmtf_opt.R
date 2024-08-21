@@ -40,10 +40,11 @@ cmtf_opt = function(Z, numComponents, initialization="random", cg_update="HS", l
 
   # Create nstart models, in parallel if requested
   if((numCores > 1) & (nstart > 1)){
-    cl = parallel::makeCluster(numCores)
+    cl = parallel::makeCluster(numCores, outfile="log.txt")
     doParallel::registerDoParallel(cl)
     models = foreach::foreach(i=1:nstart) %dopar% {
-      model = mize::mize(par=inits[[i]], fg=list("fn"=function(x){return(CMTFtoolbox::cmtf_fun(x,Z))}, "gr"=function(x){return(CMTFtoolbox::cmtf_gradient(x,Z))}), max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search)
+      opt = list("fn"=function(x){return(CMTFtoolbox::cmtf_fun(x,Z))}, "gr"=function(x){return(CMTFtoolbox::cmtf_gradient(x,Z))})
+      model = mize::mize(par=inits[[i]], fg=opt, max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search)
     }
     parallel::stopCluster(cl)
   } else{

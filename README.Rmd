@@ -18,21 +18,21 @@ knitr::opts_chunk$set(
 # CMTFtoolbox 
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/GRvanderPloeg/CMTFtoolbox/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/GRvanderPloeg/CMTFtoolbox/actions/workflows/R-CMD-check.yaml)
+[![codecov](https://codecov.io/gh/GRvanderPloeg/CMTFtoolbox/graph/badge.svg?token=Y8XWFAV0IC)](https://codecov.io/gh/GRvanderPloeg/CMTFtoolbox) [![R-CMD-check](https://github.com/GRvanderPloeg/CMTFtoolbox/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/GRvanderPloeg/CMTFtoolbox/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 ## Overview
 
-The 'CMTFtoolbox' package enables R users with two matrix and tensor factorization methods that have previously been presented in the Matlab sphere:
+The `CMTFtoolbox` package enables R users with two matrix and tensor factorization methods that have previously been presented in the Matlab sphere:
 
-- 'cmtf_opt': Coupled Matrix and Tensor Factorization (CMTF).
-- 'acmtf_opt': Advanced Coupled Matrix and Tensor Factorization (ACMTF).
+- `cmtf_opt`: Coupled Matrix and Tensor Factorization (CMTF).
+- `acmtf_opt`: Advanced Coupled Matrix and Tensor Factorization (ACMTF).
 
 Other features are pending.
 
 ## Installation
 
-You can install the development version of 'CMTFtoolbox' from [GitHub](https://github.com/) with:
+You can install the development version of `CMTFtoolbox` from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")

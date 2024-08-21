@@ -56,7 +56,7 @@ test_that("allOutput=TRUE gives a list of expected length", {
   results = cmtf_opt(Z, 2, initialization="random", nstart=10, max_iter=2, allOutput=TRUE)
   expect_equal(length(results), 10)
 })
-#
+
 # test_that("running in parallel works", {
 #   skip_on_cran()
 #
