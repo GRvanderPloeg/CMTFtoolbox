@@ -52,7 +52,8 @@ acmtf_fun = function(x, Z, alpha=1, beta=rep(1e-3, length(Z$object)), epsilon=1e
   # Penalty on the lambdas
   for(i in 1:numComponents){
     for(p in 1:numDatasets){
-      f = f + 0.5 * beta[p] * sqrt(Fac[[numModes+1]][p,i]^2 + epsilon)
+      lambda_r = Fac[[numModes+1]][p,i]
+      f = f + 0.5 * beta[p] * (sqrt(lambda_r^2 + epsilon))
     }
   }
 

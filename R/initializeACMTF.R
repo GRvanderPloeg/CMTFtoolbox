@@ -17,14 +17,25 @@
 #' datasets = list(df, df)             # Two hypothetical data blocks
 #' modes = list(c(1,2,3), c(1,4,5))    # Shared subject mode, feature and time modes separate
 #' Z = setupCMTFdata(datasets, modes)
-#' initializeCMTF(Z, 1)
+#' initializeACMTF(Z, 1)
 initializeACMTF = function(Z, numComponents, initialization="random", output="Fac"){
 
   numModes = max(unlist(Z$modes))
   numDatasets = length(Z$object)
   init = initializeCMTF(Z, numComponents, initialization, output="Fac")
 
-  init[[numModes+1]] = array(1, c(numDatasets,numComponents)) # lambda values
+  # Normalize the initialized values to norm 1
+  newInit = list()
+  for(i in 1:numModes){
+    newInit[[i]] = array(0L, dim(init[[i]]))
+    for(j in 1:numComponents){
+      newInit[[i]][,j] = init[[i]][,j] / rTensor::fnorm(rTensor::as.tensor(init[[i]][,j]))
+    }
+  }
+  init = newInit
+
+  # Initialize lambdas values as 1
+  init[[numModes+1]] = array(1, c(numDatasets,numComponents))
 
   if(output=="vect"){
     return(fac_to_vect(init))

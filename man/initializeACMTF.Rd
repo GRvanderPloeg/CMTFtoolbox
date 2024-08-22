@@ -30,5 +30,5 @@ df = array(rnorm(I*J*K), c(I,J,K))  # Create the data
 datasets = list(df, df)             # Two hypothetical data blocks
 modes = list(c(1,2,3), c(1,4,5))    # Shared subject mode, feature and time modes separate
 Z = setupCMTFdata(datasets, modes)
-initializeCMTF(Z, 1)
+initializeACMTF(Z, 1)
 }

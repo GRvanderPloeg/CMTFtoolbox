@@ -69,19 +69,12 @@ acmtf_gradient = function(x, Z, alpha=1, beta=rep(1e-3, length(Z$object)), epsil
       lambda_r = Fac[[numModes+1]][i,j]
       residuals = reinflatedBlocks[[i]] - Z$object[[i]]
 
-      if(length(modes) == 3){
-        for(k in 1:length(modes)){
-          mode = modes[k]
-          residuals = rTensor::ttm(residuals, t(as.matrix(Fac[[k]][,j])), k)
-        }
-        gradient[[numModes+1]][i,j] = residuals@data[1,1,1]
-      } else if(length(modes) == 2){
-        gradient[[numModes+1]][i,j] = t(Fac[[modes[1]]][,j]) %*% residuals@data %*% Fac[[modes[2]]][,j]
-      } else{
-        stop(paste0("Number of modes is incorrect for block ", i))
+      for(k in 1:length(modes)){
+        mode = modes[k]
+        residuals = rTensor::ttm(residuals, t(as.matrix(Fac[[k]][,j])), k)
       }
 
-      gradient[[numModes+1]][i,j] = gradient[[numModes+1]][i,j] + ((beta[i]/2) * (lambda_r / (sqrt(lambda_r^2+epsilon))))
+      gradient[[numModes+1]][i,j] = residuals@data[1] + ((beta[i]/2) * (lambda_r / (sqrt(lambda_r^2+epsilon))))
     }
   }
 

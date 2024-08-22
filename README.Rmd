@@ -23,12 +23,12 @@ knitr::opts_chunk$set(
 
 ## Overview
 
-The `CMTFtoolbox` package enables R users with two matrix and tensor factorization methods that have previously been presented in the Matlab sphere:
+The `CMTFtoolbox` package enables R users with two data fusion methods using a gradient-based all-at-once optimization approach that have previously been presented in the Matlab sphere.
 
-- `cmtf_opt`: Coupled Matrix and Tensor Factorization (CMTF).
-- `acmtf_opt`: Advanced Coupled Matrix and Tensor Factorization (ACMTF).
+- `cmtf_opt`: Coupled Matrix and Tensor Factorization (CMTF) as described in [Acar et al., 2011](https://arxiv.org/abs/1105.3422).
+- `acmtf_opt`: Advanced Coupled Matrix and Tensor Factorization (ACMTF) as described in [Acar et al., 2014](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-15-239).
 
-Other features are pending.
+This implementation was achieved using the S4 Tensor object from `rTensor` and the various conjugate gradient approaches from `mize`.
 
 ## Installation
 

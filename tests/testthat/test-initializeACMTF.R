@@ -77,3 +77,17 @@ test_that("the correct number of lambda values are produced", {
   result = initializeACMTF(Z, 2, initialization="random")
   expect_equal(result[[6]], array(1, c(2,2)))
 })
+
+test_that("initialized values are norm 1", {
+  A = array(rnorm(108))
+  B = array(rnorm(100))
+  C = array(rnorm(10))
+
+  df1 = array(tcrossprod(A, multiway::krprod(as.matrix(C), as.matrix(B))), c(108,100,10))
+  df2 = array(tcrossprod(A, multiway::krprod(as.matrix(C), as.matrix(B))), c(108,100,10))
+  datasets = list(df1, df2)
+  modes = list(c(1,2,3), c(1,4,5))
+  Z = setupCMTFdata(datasets, modes)
+  result = initializeACMTF(Z, 2, initialization="random")
+  expect_equal(norm(as.matrix(result[[1]][,1]), "F"), 1)
+})
