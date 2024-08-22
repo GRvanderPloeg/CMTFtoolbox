@@ -57,19 +57,19 @@ test_that("allOutput=TRUE gives a list of expected length", {
   expect_equal(length(results), 10)
 })
 
-# test_that("running in parallel works", {
-#   skip_on_cran()
-#
-#   set.seed(123)
-#   A = array(rnorm(108*2), c(108, 2))
-#   B = array(rnorm(100*4), c(100, 4))
-#   C = array(rnorm(10*4), c(10, 4))
-#
-#   df1 = reinflateTensor(A, B[,1:2], C[,1:2])
-#   df2 = reinflateTensor(A, B[,3:4], C[,3:4])
-#   datasets = list(df1, df2)
-#   modes = list(c(1,2,3), c(1,4,5))
-#   Z = setupCMTFdata(datasets, modes)
-#
-#   expect_no_error(cmtf_opt(Z,2,initialization="random", nstart=2, max_iter=2, numCores=2))
-# })
+test_that("running in parallel works", {
+  skip_on_cran()
+
+  set.seed(123)
+  A = array(rnorm(108*2), c(108, 2))
+  B = array(rnorm(100*4), c(100, 4))
+  C = array(rnorm(10*4), c(10, 4))
+
+  df1 = reinflateTensor(A, B[,1:2], C[,1:2])
+  df2 = reinflateTensor(A, B[,3:4], C[,3:4])
+  datasets = list(df1, df2)
+  modes = list(c(1,2,3), c(1,4,5))
+  Z = setupCMTFdata(datasets, modes)
+
+  expect_no_error(cmtf_opt(Z,2,initialization="random", nstart=2, max_iter=2, numCores=2))
+})
