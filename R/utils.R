@@ -117,7 +117,14 @@ vect_to_fac = function(vect, Z, sortComponents=FALSE){
     }
   }
 
-  if(endIdx < length(vect)){ # then you have an ACMTF model
+  # If there are values leftover, you must have an ACMTF model
+  ACMTFcase = FALSE
+  if(endIdx < length(vect)){
+    ACMTFcase = TRUE
+  }
+
+  # If you have an ACMTF model, add the remaining values as lambdas
+  if(ACMTFcase){
     Fac[[numModes+1]] = array(0L, c(numDatasets, numComponents))
     for(r in 1:numComponents){
       endIdx = startIdx + numDatasets - 1
@@ -134,6 +141,10 @@ vect_to_fac = function(vect, Z, sortComponents=FALSE){
       compFac = list()
       for(j in 1:numModes){
         compFac[[j]] = Fac[[j]][,i]
+      }
+
+      if(ACMTFcase){
+        compFac[[numModes+1]] = as.matrix(Fac[[numModes+1]][,i]) # add lambdas
       }
       varExps = calculateVarExp(compFac, Z)
       varExpsPerComp[i] = mean(varExps)
@@ -321,11 +332,10 @@ normalizeFac = function(Fac, modes){
 }
 
 calculateVarExp = function(Fac, Z){
-  # acmtf not yet implemented
   numModes = max(unlist(Z$modes))
   numDatasets = length(Z$object)
-
   reinflatedData = reinflateFac(Fac, Z, returnAsTensor=TRUE)
+
   varExps = rep(0, numDatasets)
   for(i in 1:numDatasets){
     residuals = Z$object[[i]] - reinflatedData[[i]]
