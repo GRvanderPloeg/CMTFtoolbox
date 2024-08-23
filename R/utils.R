@@ -156,6 +156,10 @@ vect_to_fac = function(vect, Z, sortComponents=FALSE){
     for(i in 1:numModes){
       Fac[[i]] = Fac[[i]][,sorting]
     }
+
+    if(ACMTFcase){
+      Fac[[numModes+1]] = Fac[[numModes+1]][,sorting]
+    }
   }
 
   return(Fac)
