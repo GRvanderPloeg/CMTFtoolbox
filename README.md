@@ -18,6 +18,7 @@ that have previously been presented in the MATLAB sphere.
   described in [Acar et al., 2011](https://arxiv.org/abs/1105.3422).
 - `acmtf_opt`: Advanced Coupled Matrix and Tensor Factorization (ACMTF)
   as described in [Acar et al.,
+  2013](https://doi.org/10.1109/EMBC.2013.6610925) and [Acar et al.,
   2014](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-15-239).
 
 Both of these methods were implemented using the all-at-once

@@ -336,6 +336,7 @@ normalizeFac = function(Fac, modes){
 }
 
 calculateVarExp = function(Fac, Z){
+  Fac = lapply(Fac, as.matrix) # protection from the 1-component case
   numModes = max(unlist(Z$modes))
   numDatasets = length(Z$object)
   reinflatedData = reinflateFac(Fac, Z, returnAsTensor=TRUE)
@@ -351,6 +352,7 @@ calculateVarExp = function(Fac, Z){
 }
 
 calcVarExpPerComponent = function(Fac, Z){
+  Fac = lapply(Fac, as.matrix) # protection from the 1-component case
   numComponents = ncol(Fac[[1]])
   numModes = max(unlist(Z$modes))
   numDatasets = length(Z$object)
@@ -360,6 +362,10 @@ calcVarExpPerComponent = function(Fac, Z){
     compFac = list()
     for(j in 1:numModes){
       compFac[[j]] = Fac[[j]][,i]
+    }
+
+    if(length(Fac) > numModes){
+      compFac[[numModes+1]] = Fac[[numModes+1]][,i]
     }
     varExpsPerComp[,i] = calculateVarExp(compFac, Z)
   }

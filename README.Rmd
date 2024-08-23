@@ -26,7 +26,7 @@ knitr::opts_chunk$set(
 The `CMTFtoolbox` package provides R users with two data fusion methods that have previously been presented in the MATLAB sphere.
 
 - `cmtf_opt`: Coupled Matrix and Tensor Factorization (CMTF) as described in [Acar et al., 2011](https://arxiv.org/abs/1105.3422).
-- `acmtf_opt`: Advanced Coupled Matrix and Tensor Factorization (ACMTF) as described in [Acar et al., 2014](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-15-239).
+- `acmtf_opt`: Advanced Coupled Matrix and Tensor Factorization (ACMTF) as described in [Acar et al., 2013](https://doi.org/10.1109/EMBC.2013.6610925) and [Acar et al., 2014](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-15-239).
 
 Both of these methods were implemented using the all-at-once optimization approaches as described in the papers above. This implementation was achieved using the S4 Tensor object from `rTensor` and the various conjugate gradient approaches from `mize`.
 

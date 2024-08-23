@@ -52,7 +52,10 @@ acmtf_opt = function(Z, numComponents, initialization="random", alpha=1, beta=re
       output[[i]] = models[[i]]
       output[[i]]$Fac = vect_to_fac(models[[i]]$par, Z, sortComponents=sortComponents)
       output[[i]]$init = vect_to_fac(inits[[i]], Z, sortComponents=sortComponents)
+      output[[i]]$varExp = calculateVarExp(output[[i]]$Fac, Z)
+      output[[i]]$varExpPerComponent = calcVarExpPerComponent(output[[i]]$Fac, Z)
     }
+
     return(output)
   }
   else{
@@ -69,7 +72,8 @@ acmtf_opt = function(Z, numComponents, initialization="random", alpha=1, beta=re
     }
     bestModel$Fac = vect_to_fac(bestModel$par, Z, sortComponents=sortComponents)
     bestModel$init = vect_to_fac(bestInit, Z, sortComponents=sortComponents)
-
+    bestModel$varExp = calculateVarExp(bestModel$Fac, Z)
+    bestModel$varExpPerComponent = calcVarExpPerComponent(bestModel$Fac, Z)
     return(bestModel)
   }
 }
