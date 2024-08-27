@@ -68,6 +68,7 @@ acmtf_gradient = function(x, Z, alpha=1, beta=rep(1e-3, length(Z$object)), epsil
     for(j in 1:numComponents){
       lambda_r = Fac[[numModes+1]][i,j]
       residuals = reinflatedBlocks[[i]] - Z$object[[i]]
+      residuals = Z$missing[[i]] * residuals
 
       for(k in 1:length(modes)){
         residuals = rTensor::ttm(residuals, t(as.matrix(Fac[[modes[k]]][,j])), k)
