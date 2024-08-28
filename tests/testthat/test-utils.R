@@ -382,3 +382,18 @@ test_that("calcVarExpPerComponent values are maximum one", {
   varExps = calcVarExpPerComponent(result$Fac, Z)
   expect_true(all(varExps <= 1))
 })
+
+test_that("findSharedModes does not throw errors", {
+  l = list(c(1,2,3), c(1,4,5))
+  expect_no_error(findSharedModes(l))
+})
+
+test_that("findSharedModes finds multiple modes if applicable", {
+  l = list(c(1,2,3), c(1,4,3), c(1,5,3))
+  expect_equal(findSharedModes(l), c(1,3))
+})
+
+test_that("findSharedModes throws an error if no shared modes are found", {
+  l = list(c(1,2,3), c(4,5,6), c(7,8,9))
+  expect_error(findSharedModes(l))
+})

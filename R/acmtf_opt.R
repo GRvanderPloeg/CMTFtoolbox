@@ -17,7 +17,9 @@
 #' datasets = list(df, df)
 #' modes = list(c(1,2,3), c(1,4,5))
 #' Z = setupCMTFdata(datasets, modes)
-#' model = acmtf_opt(Z, 1)
+#'
+#' # specific setting to reduce runtime for CRAN
+#' model = acmtf_opt(Z, 1, rel_tol=1e-5, abs_tol=1e-5)
 acmtf_opt = function(Z, numComponents, initialization="random", alpha=1, beta=rep(1e-3, length(Z$object)), epsilon=1e-8, cg_update="HS", line_search="MT", max_iter=10000, max_fn=10000, abs_tol=1e-10, rel_tol=1e-10, grad_tol=1e-10, nstart=1, numCores=1, sortComponents=TRUE, allOutput=FALSE){
   numModes = max(unlist(Z$modes))
   numDatasets = length(Z$object)

@@ -73,5 +73,7 @@ df = array(rnorm(I*J*K), c(I,J,K))
 datasets = list(df, df)
 modes = list(c(1,2,3), c(1,4,5))
 Z = setupCMTFdata(datasets, modes)
-model = acmtf_opt(Z, 1)
+
+# specific setting to reduce runtime for CRAN
+model = acmtf_opt(Z, 1, rel_tol=1e-5, abs_tol=1e-5)
 }

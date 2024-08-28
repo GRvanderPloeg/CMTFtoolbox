@@ -43,7 +43,6 @@ setupCMTFdata = function(datasets, modes, normalize=TRUE){
     norms[p] = rTensor::fnorm(tensors[[p]])
 
     if(normalize == TRUE){
-      tensors[[p]] = tensors[[p]]
       tensors[[p]] = tensors[[p]] / rTensor::fnorm(tensors[[p]])
     }
   }
@@ -371,4 +370,20 @@ calcVarExpPerComponent = function(Fac, Z){
   }
 
   return(varExpsPerComp)
+}
+
+findSharedModes = function(modes){
+  numDatasets = length(modes)
+  sharedModes = modes[[1]]
+
+  for(i in 2:numDatasets){
+    sharedModes = intersect(sharedModes, modes[[i]])
+  }
+
+  if(length(sharedModes) == 0){
+    stop("No intersection of modes found.")
+  } else{
+    return(sharedModes)
+  }
+
 }
