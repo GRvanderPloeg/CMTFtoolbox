@@ -20,15 +20,19 @@ Fac: list object with all loadings in all components per mode, ordered the same 
 Convert vectorized output of (a)cmtf to a Fac list object with all loadings per mode.
 }
 \examples{
+set.seed(123)
 A = array(rnorm(108*2), c(108, 2))
-B = array(rnorm(100*4), c(100, 4))
-C = array(rnorm(10*4), c(10, 4))
+B = array(rnorm(100*2), c(100, 2))
+C = array(rnorm(10*2), c(10, 2))
+D = array(rnorm(100*2), c(100,2))
+E = array(rnorm(10*2), c(10,2))
 
-df1 = reinflateTensor(A, B[,1:2], C[,1:2])
-df2 = reinflateTensor(A, B[,3:4], C[,3:4])
+df1 = reinflateTensor(A, B, C)
+df2 = reinflateTensor(A, D, E)
 datasets = list(df1, df2)
 modes = list(c(1,2,3), c(1,4,5))
-Z = setupCMTFdata(datasets, modes)
+Z = setupCMTFdata(datasets, modes, normalize=FALSE)
+
 result = cmtf_opt(Z, 2, initialization="random", max_iter = 2)
 Fac = vect_to_fac(result$par, Z)
 }

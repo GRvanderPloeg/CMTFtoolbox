@@ -57,12 +57,17 @@ List object, similar to \code{\link[mize:mize]{mize::mize()}} output. Includes a
 Coupled matrix and tensor factorizations
 }
 \examples{
-I = 108
-J = 100
-K = 10
-df = array(rnorm(I*J*K), c(I,J,K))
-datasets = list(df, df)
+A = array(rnorm(108*2), c(108, 2))
+B = array(rnorm(100*2), c(100, 2))
+C = array(rnorm(10*2), c(10, 2))
+D = array(rnorm(100*2), c(100,2))
+E = array(rnorm(10*2), c(10,2))
+
+df1 = reinflateTensor(A, B, C)
+df2 = reinflateTensor(A, D, E)
+datasets = list(df1, df2)
 modes = list(c(1,2,3), c(1,4,5))
-Z = setupCMTFdata(datasets, modes)
+Z = setupCMTFdata(datasets, modes, normalize=FALSE)
+
 model = cmtf_opt(Z, 1, rel_tol=1e-4) # quick convergence for example only
 }

@@ -24,7 +24,20 @@ that have previously been presented in the MATLAB sphere.
 Both of these methods were implemented using the all-at-once
 optimization approaches as described in the papers above. This
 implementation was achieved using the S4 Tensor object from `rTensor`
-and the various conjugate gradient approaches from `mize`.
+and the various conjugate gradient approaches from `mize`. Other
+features of the package include:
+
+- `investigateFMS`: Factor Match Score (FMS) based investigation into
+  selecting the appropriate number of components for CMTF and ACMTF.
+- `reinflateFac`: reinflates all data blocks based on a CMTF or ACMTF
+  model for inspection and residual calculation.
+- `reinflateTensor`: reinflates a tensor from three matrices A, B and C.
+- `Jakobsen2025`: A three-block example dataset containing a
+  subject-linked longitudinal microbiome infant gut microbiome, mother
+  milk microbiome and mother milk metabolomics dataset. More information
+  can be found in [Poulsen et al.,
+  2022](https://bmjopen.bmj.com/content/12/11/e059552).
+- More features are still in development!
 
 ## Installation
 

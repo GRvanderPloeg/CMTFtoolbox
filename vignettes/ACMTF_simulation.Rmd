@@ -1,0 +1,149 @@
+---
+title: "ACMTF_simulation"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ACMTF_simulation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+library(CMTFtoolbox)
+library(dplyr)
+library(tidyr)
+library(ggpubr)
+library(rTensor)
+```
+
+```{r helper functions}
+postprocessModel = function(Anorm, Fac, Z){
+  numComponents = ncol(Fac[[1]])
+  numDatasets = length(Z$object)
+  numModes = max(unlist(Z$modes))
+  lambdaOutput = array(0L, c(numDatasets, numComponents))
+  matchScore = 1:numComponents
+  
+  if(length(Fac) > numModes){
+    lambdas = abs(Fac[[numModes+1]])
+  }
+  else{
+    normalizedModel = normalizeFac(Fac, Z$modes)
+    lambdas = normalizedModel$normsPerDataset
+  }
+  
+  # Check all permutations of columns in the model
+  proposedMatchScores = array(0L, c(numComponents, numComponents)) # rows: model, columns: sim
+  for(i in 1:numComponents){
+    a_hat = Fac[[1]][,i]
+    for(j in 1:numComponents){
+      a = Anorm[,j]
+      proposedMatchScores[i,j] = abs((t(a_hat) %*% a) / (norm(a_hat, "2") * norm(a, "2")))
+    }
+  }
+  
+  # Per component, find the best matching component from the simulated scores
+  for(j in 1:numComponents){
+    idx = which.max(proposedMatchScores[,j])
+    matchScore[j] = proposedMatchScores[idx,j]
+    lambdaOutput[,j] = lambdas[,idx]
+  }
+  return(list("matchScore"=matchScore, "lambda"=lambdaOutput))
+}
+
+sideBySidePlot = function(Anorm, cmtf_result, acmtf_result, Z, overallTitle=""){
+  numComponents = ncol(cmtf_result[[1]]$Fac[[1]])
+  cmtf_matchScores = list()
+  acmtf_matchScores = list()
+  cmtf_lambdas = list()
+  acmtf_lambdas = list()
+  
+  for(i in 1:length(acmtf_result)){
+    cmtf_matchScores[[i]] = as.data.frame(postprocessModel(Anorm, cmtf_result[[i]]$Fac, Z)$matchScore)
+    acmtf_matchScores[[i]] = as.data.frame(postprocessModel(Anorm, acmtf_result[[i]]$Fac, Z)$matchScore)
+    
+    cmtf_lambdas[[i]] = as.data.frame(postprocessModel(Anorm, cmtf_result[[i]]$Fac, Z)$lambda)
+    acmtf_lambdas[[i]] = as.data.frame(postprocessModel(Anorm, acmtf_result[[i]]$Fac, Z)$lambda)
+  }
+  
+  cmtf_matchScores = bind_cols(cmtf_matchScores) %>% t() %>% as_tibble()
+  acmtf_matchScores = bind_cols(acmtf_matchScores) %>% t() %>% as_tibble()
+  cmtf_lambdas = bind_rows(cmtf_lambdas) %>% as_tibble()
+  acmtf_lambdas = bind_rows(acmtf_lambdas) %>% as_tibble()
+  
+  colnames(cmtf_matchScores) = 1:numComponents
+  colnames(acmtf_matchScores) = 1:numComponents
+  colnames(cmtf_lambdas) = 1:numComponents
+  colnames(acmtf_lambdas) = 1:numComponents
+  
+  a=cmtf_lambdas %>% mutate(type=rep(c("lambda","sigma"),length(cmtf_result))) %>% pivot_longer(-type) %>% group_by(type,name) %>% summarize(m=mean(value),s=plotrix::std.error(value)) %>% mutate(type = as.factor(type)) %>% ggplot(aes(x=as.factor(name),y=m,fill=type)) + geom_bar(stat="identity",position="dodge",col="black",width=1) + geom_pointrange(aes(ymin=m-s,ymax=m+s), size=1, position=position_dodge(width=1)) + ggtitle("CMTF") + theme(legend.position="top") + xlab("Component") + ylab("Value")
+  
+  b=acmtf_lambdas %>% mutate(type=rep(c("lambda","sigma"),length(acmtf_result))) %>% pivot_longer(-type) %>% group_by(type,name) %>% summarize(m=mean(value),s=plotrix::std.error(value)) %>% mutate(type = as.factor(type)) %>% ggplot(aes(x=as.factor(name),y=m,fill=type)) + geom_bar(stat="identity",position="dodge",col="black",width=1) + geom_pointrange(aes(ymin=m-s,ymax=m+s), size=1, position=position_dodge(width=1)) + ggtitle("ACMTF") + theme(legend.position="top") + xlab("Component") + ylab("Value")
+  
+  c=cmtf_matchScores %>% as_tibble() %>% pivot_longer(everything()) %>% ggplot(aes(x=as.factor(name),y=value)) + geom_boxplot() + xlab("Component") + ylab("Match score") + ylim(0,1) + ggtitle("CMTF")
+  
+  d=acmtf_matchScores %>% as_tibble() %>% pivot_longer(everything()) %>% ggplot(aes(x=as.factor(name),y=value)) + geom_boxplot() + xlab("Component") + ylab("Match score") + ylim(0,1) + ggtitle("ACMTF")
+  
+  plot = ggarrange(a,b,c,d)
+  annotate_figure(plot, top = text_grob(overallTitle))
+}
+```
+
+# Introduction
+
+In this vignette we compare Advanced Coupled Matrix and Tensor Factorization (ACMTF) with Coupled Matrix and Tensor Factorization (CMTF) using a simulation as described in case 1 of [Acar et al., 2014](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-15-239). Due to limitations in computational time allowed to render this vignette, we create only 3 randomly initialized models and use slightly less strict convergence parameters.
+
+We create random components that we reinflate into data blocks. We add 5% noise to each data block to make the error structure a bit more complicated. The number of shared and distinct components differ per simulation.
+
+# Simulation
+
+We create a tensor and a matrix that a linked in the subject mode with $\lambda$ = [1 0 1] and $\sigma$ = [1 1 0], meaning that component 1 is shared between the blocks, component 2 is distinct for the matrix and component 3 is distinct for the tensor.
+
+```{r simulate data case 1}
+set.seed(123)
+
+R = 3
+I = 50
+J = 30
+K = 40
+M = 20
+modes = list(c(1,2,3), c(1,4))
+
+A = array(rnorm(I*R), c(I, R))  # shared subject mode
+Anorm = sweep(A, 2, apply(A, 2, function(x){norm(as.matrix(x), "F")}), FUN="/")
+B = array(rnorm(J*R), c(J, R))  # distinct feature mode of X1
+Bnorm = sweep(B, 2, apply(B, 2, function(x){norm(as.matrix(x), "F")}), FUN="/")
+C = array(rnorm(K*R), c(K, R))  # distinct condition mode of X1
+Cnorm = sweep(C, 2, apply(C, 2, function(x){norm(as.matrix(x), "F")}), FUN="/")
+D = array(rnorm(M*R), c(M, R))  # distinct feature mode of X2
+Dnorm = sweep(D, 2, apply(D, 2, function(x){norm(as.matrix(x), "F")}), FUN="/")
+
+lambdas = array(c(1, 1, 0, 1, 1, 0), c(2,3))
+
+df1 = array(0L, c(I, J, K))
+df2 = array(0L, c(I, M))
+for(i in 1:R){
+  df1 = df1 + lambdas[1,i] * reinflateTensor(Anorm[,i], Bnorm[,i], Cnorm[,i])
+  df2 = df2 + lambdas[2,i] * reinflateMatrix(Anorm[,i], Dnorm[,i])
+}
+df1 = as.tensor(df1)
+df2 = as.tensor(df2)
+
+# Add noise
+df1_noise = as.tensor(array(rnorm(I*J*K), c(I,J,K)))
+df2_noise = as.tensor(array(rnorm(I*M), c(I,M)))
+
+X1 = df1 + 0.05 * df1_noise * fnorm(df1) / fnorm(df1_noise)
+X2 = df2 + 0.05 * df2_noise * fnorm(df2) / fnorm(df2_noise)
+
+datasets = list(X1@data, X2@data)
+Z = setupCMTFdata(datasets, modes, normalize=TRUE)
+```
+
+```{r run models case 1}
+cmtf_result = cmtf_opt(Z, 3, nstart=3, rel_tol=1e-8, grad_tol=1e-8, allOutput=TRUE)
+acmtf_result = acmtf_opt(Z, 3, nstart=3, rel_tol=1e-8, grad_tol=1e-8, allOutput=TRUE)
+```
+
+```{r create overview plot case 1}
+sideBySidePlot(Anorm, cmtf_result, acmtf_result, Z)
+```

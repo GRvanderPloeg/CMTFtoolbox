@@ -11,17 +11,19 @@
 #'
 #' @examples
 #' A = array(rnorm(108*2), c(108, 2))
-#' B = array(rnorm(100*4), c(100, 4))
-#' C = array(rnorm(10*4), c(10, 4))
+#' B = array(rnorm(100*2), c(100, 2))
+#' C = array(rnorm(10*2), c(10, 2))
+#' D = array(rnorm(100*2), c(100,2))
+#' E = array(rnorm(10*2), c(10,2))
 #'
-#' df1 = reinflateTensor(A, B[,1:2], C[,1:2])
-#' df2 = reinflateTensor(A, B[,3:4], C[,3:4])
+#' df1 = reinflateTensor(A, B, C)
+#' df2 = reinflateTensor(A, D, E)
 #' datasets = list(df1, df2)
 #' modes = list(c(1,2,3), c(1,4,5))
 #' Z = setupCMTFdata(datasets, modes, normalize=FALSE)
 #'
-#' result = acmtf_opt(Z, 1, max_iter=2) # unoptimized CMTF model
-#' f = acmtf_fun(result$par, Z)
+#' init = initializeACMTF(Z, 2, output="vect")
+#' f = acmtf_fun(init, Z)
 acmtf_fun = function(x, Z, alpha=1, beta=rep(1e-3, length(Z$object)), epsilon=1e-8){
 
   numDatasets = length(Z$object)

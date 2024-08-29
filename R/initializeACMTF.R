@@ -9,15 +9,19 @@
 #' @export
 #'
 #' @examples
-#' I = 108                             # subject mode
-#' J = 100                             # feature mode
-#' K = 10                              # condition mode
+#' A = array(rnorm(108*2), c(108, 2))
+#' B = array(rnorm(100*2), c(100, 2))
+#' C = array(rnorm(10*2), c(10, 2))
+#' D = array(rnorm(100*2), c(100,2))
+#' E = array(rnorm(10*2), c(10,2))
 #'
-#' df = array(rnorm(I*J*K), c(I,J,K))  # Create the data
-#' datasets = list(df, df)             # Two hypothetical data blocks
-#' modes = list(c(1,2,3), c(1,4,5))    # Shared subject mode, feature and time modes separate
-#' Z = setupCMTFdata(datasets, modes)
-#' initializeACMTF(Z, 1)
+#' df1 = reinflateTensor(A, B, C)
+#' df2 = reinflateTensor(A, D, E)
+#' datasets = list(df1, df2)
+#' modes = list(c(1,2,3), c(1,4,5))
+#' Z = setupCMTFdata(datasets, modes, normalize=FALSE)
+#'
+#' init = initializeACMTF(Z, 2)
 initializeACMTF = function(Z, numComponents, initialization="random", output="Fac"){
 
   numModes = max(unlist(Z$modes))
