@@ -102,7 +102,7 @@ milk_timepoints = timepoints
 
 # Milk metabolomics
 df = read.csv("./data-raw/milkMetabNumeric.csv", header=FALSE, sep=" ") %>% as_tibble()
-taxonomy = read.csv("./data-raw/milk_metab_CAS_numbers.csv", header=TRUE, sep=" ") %>% as_tibble()
+taxonomy = read.csv("./data-raw/milk_metab_CAS_numbers.csv", header=TRUE, sep=",") %>% as_tibble()
 sampleInfo = read.csv("./data-raw/milkMetab_sampleMeta.csv", header=FALSE, sep=" ") %>% as_tibble()
 colnames(sampleInfo) = c("RCID", "BMI", "BMI.group", "Days", "Gestational.age", "C.section", "AB.infant", "AB.mother", "Secretor", "Lewis", "subject")
 
@@ -149,10 +149,14 @@ datasets = list(faeces_homogenized, milk_homogenized, milkMetab_homogenized)
 modes = list(c(1,2,3),c(1,4,5),c(1,6,7))
 Z = setupCMTFdata(datasets, modes)
 
+
+milkMetab_featureMeta = milkMetab_taxonomy %>% mutate(X = make.names(X), CAS.Registry = make.names(CAS.Registry))
+milkMetab_featureMeta[70,1] = "tau.Methylhistidine" # Fix non-ascii tau character
+
 Jakobsen2025 = list("Z"=Z,
                     "homogenizedSubjectMetadata"=homogenized_subjectMeta,
                     "faecal_microbiome_taxonomy"=faeces_taxonomy,
                     "milk_microbiome_taxonomy"=milk_taxonomy,
-                    "milk_metabolites"=milkMetab_taxonomy)
+                    "milk_metabolites"=milkMetab_featureMeta)
 
 usethis::use_data(Jakobsen2025, overwrite = TRUE)
