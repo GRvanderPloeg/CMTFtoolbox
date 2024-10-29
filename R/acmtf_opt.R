@@ -51,35 +51,28 @@ acmtf_opt = function(Z, numComponents, initialization="random", alpha=1, beta=re
     }
   }
 
+  # Attach extra model info
+  for(i in 1:nstart){
+    models[[i]]$Fac = vect_to_fac(models[[i]]$par, Z, sortComponents=sortComponents)
+    models[[i]]$init = vect_to_fac(inits[[i]], Z, sortComponents=sortComponents)
+    models[[i]]$varExp = calculateVarExp(models[[i]]$Fac, Z)
+    models[[i]]$varExpPerComponent = calcVarExpPerComponent(models[[i]]$Fac, Z)
+  }
+
   # Return all models if specified, otherwise return only the best model
   if(allOutput == TRUE){
-    output = list()
-    for(i in 1:nstart){
-      output[[i]] = models[[i]]
-      output[[i]]$Fac = vect_to_fac(models[[i]]$par, Z, sortComponents=sortComponents)
-      output[[i]]$init = vect_to_fac(inits[[i]], Z, sortComponents=sortComponents)
-      output[[i]]$varExp = calculateVarExp(output[[i]]$Fac, Z)
-      output[[i]]$varExpPerComponent = calcVarExpPerComponent(output[[i]]$Fac, Z)
-    }
-
-    return(output)
+    return(models)
   }
   else{
     bestModel = 0
     bestObjective = Inf
-    bestInit = NA
     for(i in 1:nstart){
-      output = models[[i]]
-      if(output$f <= bestObjective){
-        bestModel = output
-        bestObjective = output$f
-        bestInit = inits[[i]]
+      model = models[[i]]
+      if(model$f <= bestObjective){
+        bestModel = model
+        bestObjective = model$f
       }
     }
-    bestModel$Fac = vect_to_fac(bestModel$par, Z, sortComponents=sortComponents)
-    bestModel$init = vect_to_fac(bestInit, Z, sortComponents=sortComponents)
-    bestModel$varExp = calculateVarExp(bestModel$Fac, Z)
-    bestModel$varExpPerComponent = calcVarExpPerComponent(bestModel$Fac, Z)
     return(bestModel)
   }
 }
