@@ -47,7 +47,10 @@ devtools::install_github("GRvanderPloeg/CMTFtoolbox")
 
 ## Citation
 
-Pending
+Please use the following citation when using this package:
+
+-   van der Ploeg, G. R., Westerhuis, J., Heintz-Buschart, A., & Smilde, A. (2024). ACMTF-R: multi-way data integration of biological variation of interest (manuscript in preparation).
+
 
 ## Usage
 
