@@ -106,6 +106,8 @@ vect_to_fac = function(vect, Z, sortComponents=FALSE){
     }
   }
 
+  # Ensure that matrices are given back, even in the one-component case
+  Fac = lapply(Fac, as.matrix)
   return(Fac)
 }
 

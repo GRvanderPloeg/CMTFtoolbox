@@ -40,7 +40,6 @@ reinflateFac = function(Fac, Z, returnAsTensor=FALSE){
 
   for(p in 1:numDatasets){
     modes = Z$modes[[p]]
-    componentsToSum = list()
     reinflatedBlock = array(0L, dim(Z$object[[p]]))
 
     for(i in 1:numComponents){

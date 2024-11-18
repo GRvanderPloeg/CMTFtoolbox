@@ -44,11 +44,12 @@ acmtf_gradient = function(x, Z, alpha=1, beta=rep(1e-3, length(Z$object)), epsil
 
         unfoldedX = rTensor::k_unfold(Z$missing[[p]], idx) * rTensor::k_unfold(Z$object[[p]], idx)
         unfoldedXhat = rTensor::k_unfold(Z$missing[[p]], idx) * rTensor::k_unfold(reinflatedBlocks[[p]], idx)
+        lambdas = Fac[[numModes+1]][p,]
 
         if(length(modes) == 3){
-          gradientMode = (unfoldedXhat - unfoldedX)@data %*% multiway::krprod(t(Fac[[numModes+1]][p,]), multiway::krprod(Fac[[otherModes[2]]], Fac[[otherModes[1]]]))
+          gradientMode = (unfoldedXhat - unfoldedX)@data %*% multiway::krprod(t(lambdas), multiway::krprod(Fac[[otherModes[2]]], Fac[[otherModes[1]]]))
         } else if(length(modes) == 2){
-          gradientMode = (unfoldedXhat - unfoldedX)@data %*% Fac[[otherModes[1]]] %*% diag(Fac[[numModes+1]][p,])
+          gradientMode = (unfoldedXhat - unfoldedX)@data %*% Fac[[otherModes[1]]] %*% diag(x=lambdas, nrow=length(lambdas), ncol=length(lambdas))
         }
         else{
           stop(paste0("Number of modes is incorrect for block ", p))
