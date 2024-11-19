@@ -67,6 +67,59 @@ test_that("vect_to_fac resorts components", {
   expect_false(all(unlist(result1$Fac) == unlist(result2$Fac)))
 })
 
+test_that("vect_to_fac has correct loadings for a dataset that is a vector with sortComponents FALSE", {
+  numComponents = 3
+  I = 108
+  J = 100
+  K = 10
+  A = array(rnorm(I*numComponents), c(I, numComponents))  # shared subject mode
+  B = array(rnorm(J*numComponents), c(J, numComponents))  # distinct feature mode of X1
+  C = array(rnorm(K*numComponents), c(K, numComponents))  # distinct condition mode of X1
+  D = t(as.matrix(c(1,1,1)))
+  lambdas = matrix(c(1,1,1,1,1,1),nrow=2,ncol=numComponents)
+
+  df1 = array(0L, c(I, J, K))
+  df2 = array(0L, c(I, L))
+  for(i in 1:numComponents){
+    df1 = df1 + lambdas[1,i] * reinflateTensor(A[,i], B[,i], C[,i])
+    df2 = df2 + lambdas[2,i] * reinflateMatrix(A[,i], D[,i])
+  }
+  datasets = list(df1, df2)
+  modes = list(c(1,2,3), c(1,4))
+  Z = setupCMTFdata(datasets, modes, normalize=FALSE)
+
+  vec = initializeACMTF(Z, numComponents, output="vect")
+  Fac = vect_to_fac(vec, Z, sortComponents=FALSE)
+  expect_equal(dim(Fac[[4]]), c(1,numComponents))
+})
+
+test_that("vect_to_fac has correct loadings for a dataset that is a vector with sortComponents TRUE", {
+  numComponents = 3
+  I = 108
+  J = 100
+  K = 10
+  L = 1
+  A = array(rnorm(I*numComponents), c(I, numComponents))  # shared subject mode
+  B = array(rnorm(J*numComponents), c(J, numComponents))  # distinct feature mode of X1
+  C = array(rnorm(K*numComponents), c(K, numComponents))  # distinct condition mode of X1
+  D = t(as.matrix(c(1,1,1)))
+  lambdas = matrix(c(1,1,1,1,1,1),nrow=2,ncol=numComponents)
+
+  df1 = array(0L, c(I, J, K))
+  df2 = array(0L, c(I, L))
+  for(i in 1:numComponents){
+    df1 = df1 + lambdas[1,i] * reinflateTensor(A[,i], B[,i], C[,i])
+    df2 = df2 + lambdas[2,i] * reinflateMatrix(A[,i], D[,i])
+  }
+  datasets = list(df1, df2)
+  modes = list(c(1,2,3), c(1,4))
+  Z = setupCMTFdata(datasets, modes, normalize=FALSE)
+
+  vec = initializeACMTF(Z, numComponents, output="vect")
+  Fac = vect_to_fac(vec, Z, sortComponents=TRUE)
+  expect_equal(dim(Fac[[4]]), c(1,numComponents))
+})
+
 test_that("removeTwoNormCol indeed removed the two-norm", {
   df = array(rnorm(108,2), c(108,2))
   result = removeTwoNormCol(df)

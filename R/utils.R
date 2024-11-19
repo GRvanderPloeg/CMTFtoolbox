@@ -98,7 +98,9 @@ vect_to_fac = function(vect, Z, sortComponents=FALSE){
 
     # sort Fac
     for(i in 1:numModes){
-      Fac[[i]] = Fac[[i]][,sorting]
+
+      # 20241119 casting to matrix explicitly to fix Y as a vector corner case
+      Fac[[i]] = matrix(Fac[[i]][,sorting], nrow=nrow(Fac[[i]]), ncol=ncol(Fac[[i]]))
     }
 
     if(ACMTFcase){
