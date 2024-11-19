@@ -113,6 +113,7 @@ test_that("acmtf_opt works when including a vector Y (3 comp)", {
   I = 108
   J = 100
   K = 10
+  L = 1
   A = array(rnorm(I*numComponents), c(I, numComponents))  # shared subject mode
   B = array(rnorm(J*numComponents), c(J, numComponents))  # distinct feature mode of X1
   C = array(rnorm(K*numComponents), c(K, numComponents))  # distinct condition mode of X1
