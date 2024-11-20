@@ -20,6 +20,7 @@ that have previously been presented in the MATLAB sphere.
   as described in [Acar et al.,
   2013](https://doi.org/10.1109/EMBC.2013.6610925) and [Acar et al.,
   2014](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-15-239).
+- `acmtfr_opt`: ACMTF-regression, currently in development.
 
 Both of these methods were implemented using the all-at-once
 optimization approaches as described in the papers above. This
@@ -37,7 +38,6 @@ features of the package include:
   milk microbiome and mother milk metabolomics dataset. More information
   can be found in [Poulsen et al.,
   2022](https://bmjopen.bmj.com/content/12/11/e059552).
-- More features are still in development!
 
 ## Installation
 
@@ -72,6 +72,7 @@ A = array(rnorm(I*numComponents), c(I, numComponents))  # shared subject mode
 B = array(rnorm(J*numComponents), c(J, numComponents))  # distinct feature mode of X1
 C = array(rnorm(K*numComponents), c(K, numComponents))  # distinct condition mode of X1
 D = array(rnorm(L*numComponents), c(L, numComponents))  # distinct feature mode of X2
+Y = matrix(A[,1])
 lambdas = array(c(1, 1, 1, 0, 0, 1), c(2,3))
 
 df1 = array(0L, c(I, J, K))
@@ -86,4 +87,5 @@ Z = setupCMTFdata(datasets, modes, normalize=TRUE)
 
 cmtf_model = cmtf_opt(Z, 3)
 acmtf_model = acmtf_opt(Z, 3)
+acmtfr_model = acmtfr_opt(Z, Y, 3)
 ```
