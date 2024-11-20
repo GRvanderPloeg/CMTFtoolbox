@@ -65,6 +65,8 @@
 <code>cmtf_opt</code>: Coupled Matrix and Tensor Factorization (CMTF) as described in <a href="https://arxiv.org/abs/1105.3422" class="external-link">Acar et al., 2011</a>.</li>
 <li>
 <code>acmtf_opt</code>: Advanced Coupled Matrix and Tensor Factorization (ACMTF) as described in <a href="https://doi.org/10.1109/EMBC.2013.6610925" class="external-link">Acar et al., 2013</a> and <a href="https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-15-239" class="external-link">Acar et al., 2014</a>.</li>
+<li>
+<code>acmtfr_opt</code>: ACMTF-regression, currently in development.</li>
 </ul>
 <p>Both of these methods were implemented using the all-at-once optimization approaches as described in the papers above. This implementation was achieved using the S4 Tensor object from <code>rTensor</code> and the various conjugate gradient approaches from <code>mize</code>. Other features of the package include:</p>
 <ul>
@@ -76,7 +78,6 @@
 <code>reinflateTensor</code>: reinflates a tensor from three matrices A, B and C.</li>
 <li>
 <code>Jakobsen2025</code>: A three-block example dataset containing a subject-linked longitudinal microbiome infant gut microbiome, mother milk microbiome and mother milk metabolomics dataset. More information can be found in <a href="https://bmjopen.bmj.com/content/12/11/e059552" class="external-link">Poulsen et al., 2022</a>.</li>
-<li>More features are still in development!</li>
 </ul>
 </div>
 <div class="section level2">
@@ -111,6 +112,7 @@
 <span><span class="va">B</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">J</span><span class="op">*</span><span class="va">numComponents</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">J</span>, <span class="va">numComponents</span><span class="op">)</span><span class="op">)</span>  <span class="co"># distinct feature mode of X1</span></span>
 <span><span class="va">C</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">K</span><span class="op">*</span><span class="va">numComponents</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">K</span>, <span class="va">numComponents</span><span class="op">)</span><span class="op">)</span>  <span class="co"># distinct condition mode of X1</span></span>
 <span><span class="va">D</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">L</span><span class="op">*</span><span class="va">numComponents</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">L</span>, <span class="va">numComponents</span><span class="op">)</span><span class="op">)</span>  <span class="co"># distinct feature mode of X2</span></span>
+<span><span class="va">Y</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">A</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">lambdas</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">df1</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fl">0L</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">I</span>, <span class="va">J</span>, <span class="va">K</span><span class="op">)</span><span class="op">)</span></span>
@@ -124,7 +126,8 @@
 <span><span class="va">Z</span> <span class="op">=</span> <span class="fu"><a href="reference/setupCMTFdata.html">setupCMTFdata</a></span><span class="op">(</span><span class="va">datasets</span>, <span class="va">modes</span>, normalize<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">cmtf_model</span> <span class="op">=</span> <span class="fu"><a href="reference/cmtf_opt.html">cmtf_opt</a></span><span class="op">(</span><span class="va">Z</span>, <span class="fl">3</span><span class="op">)</span></span>
-<span><span class="va">acmtf_model</span> <span class="op">=</span> <span class="fu"><a href="reference/acmtf_opt.html">acmtf_opt</a></span><span class="op">(</span><span class="va">Z</span>, <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">acmtf_model</span> <span class="op">=</span> <span class="fu"><a href="reference/acmtf_opt.html">acmtf_opt</a></span><span class="op">(</span><span class="va">Z</span>, <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="va">acmtfr_model</span> <span class="op">=</span> <span class="fu"><a href="reference/acmtfr_opt.html">acmtfr_opt</a></span><span class="op">(</span><span class="va">Z</span>, <span class="va">Y</span>, <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="license">
