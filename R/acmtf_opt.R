@@ -39,7 +39,7 @@ acmtf_opt = function(Z, numComponents, initialization="random", alpha=1, beta=re
     cl = parallel::makeCluster(numCores)
     doParallel::registerDoParallel(cl)
     models = foreach::foreach(i=1:nstart) %dopar% {
-      opt = list("fn"=function(x){return(CMTFtoolbox::acmtf_fun(x,Z))}, "gr"=function(x){return(CMTFtoolbox::acmtf_gradient(x,Z))})
+      opt = list("fn"=function(x){return(CMTFtoolbox::acmtf_fun(x,Z,alpha,beta,epsilon))}, "gr"=function(x){return(CMTFtoolbox::acmtf_gradient(x,Z,alpha,beta,epsilon))})
       print(dim(Z$object[[1]])) # somehow this line fixes a bug where parallel gives an error about "dims cannot be of length 0"
       model = mize::mize(par=inits[[i]], fg=opt, max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search)
     }
@@ -47,7 +47,7 @@ acmtf_opt = function(Z, numComponents, initialization="random", alpha=1, beta=re
   } else{
     models = list()
     for(i in 1:nstart){
-      models[[i]] = mize::mize(par=inits[[i]], fg=list("fn"=function(x){return(acmtf_fun(x,Z))}, "gr"=function(x){return(acmtf_gradient(x,Z))}), max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search)
+      models[[i]] = mize::mize(par=inits[[i]], fg=list("fn"=function(x){return(acmtf_fun(x,Z,alpha,beta,epsilon))}, "gr"=function(x){return(acmtf_gradient(x,Z,alpha,beta,epsilon))}), max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search)
     }
   }
 

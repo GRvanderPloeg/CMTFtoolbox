@@ -56,3 +56,35 @@ test_that("an error is thrown for 4-way or more", {
 
   expect_error(acmtfr_gradient(fac_to_vect(result), Z, Y))
 })
+
+test_that("g[[1]] is different for different values of pi", {
+  I = 108
+  J = 100
+  K = 10
+  df = array(rnorm(I*J*K), c(I,J,K))
+  datasets = list(df, df)
+  Y = matrix(rnorm(I), nrow=I, ncol=1)
+  modes = list(c(1,2,3), c(1,4,5))
+  Z = setupCMTFdata(datasets, modes)
+  result = initializeACMTF(Z, 1, initialization="random")
+
+  Fac1 = vect_to_fac(acmtfr_gradient(fac_to_vect(result), Z, Y, pi=0.1), Z)
+  Fac2 = vect_to_fac(acmtfr_gradient(fac_to_vect(result), Z, Y, pi=0.9), Z)
+  expect_failure(expect_equal(Fac1[[1]], Fac2[[1]]))
+})
+
+test_that("g[[2]] is the same for different values of pi", {
+  I = 108
+  J = 100
+  K = 10
+  df = array(rnorm(I*J*K), c(I,J,K))
+  datasets = list(df, df)
+  Y = matrix(rnorm(I), nrow=I, ncol=1)
+  modes = list(c(1,2,3), c(1,4,5))
+  Z = setupCMTFdata(datasets, modes)
+  result = initializeACMTF(Z, 1, initialization="random")
+
+  Fac1 = vect_to_fac(acmtfr_gradient(fac_to_vect(result), Z, Y, pi=0.1), Z)
+  Fac2 = vect_to_fac(acmtfr_gradient(fac_to_vect(result), Z, Y, pi=0.9), Z)
+  expect_equal(Fac1[[2]], Fac2[[2]])
+})

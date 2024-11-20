@@ -26,3 +26,19 @@ test_that("an error is thrown for 4-way or more", {
 
   expect_error(acmtfr_fun(fac_to_vect(result), Z))
 })
+
+test_that("f is different between different pi values", {
+  I = 108
+  J = 100
+  K = 10
+
+  df = array(rnorm(I*J*K), c(I,J,K))
+  Y = rnorm(I)
+  datasets = list(df, df)
+  modes = list(c(1,2,3), c(1,4,5))
+  Z = setupCMTFdata(datasets, modes)
+  result = initializeACMTF(Z, 1, initialization="random")
+  f1 = acmtfr_fun(fac_to_vect(result), Z, Y, pi=0.1)
+  f2 = acmtfr_fun(fac_to_vect(result), Z, Y, pi=0.9)
+  expect_true(f1 != f2)
+})

@@ -39,7 +39,7 @@ acmtfr_opt = function(Z, Y, numComponents, initialization="random", alpha=1, bet
     cl = parallel::makeCluster(numCores)
     doParallel::registerDoParallel(cl)
     models = foreach::foreach(i=1:nstart) %dopar% {
-      opt = list("fn"=function(x){return(CMTFtoolbox::acmtfr_fun(x,Z,Y))}, "gr"=function(x){return(CMTFtoolbox::acmtfr_gradient(x,Z,Y))})
+      opt = list("fn"=function(x){return(CMTFtoolbox::acmtfr_fun(x,Z,Y,alpha,beta,epsilon,pi))}, "gr"=function(x){return(CMTFtoolbox::acmtfr_gradient(x,Z,Y,alpha,beta,epsilon,pi))})
       print(dim(Z$object[[1]])) # somehow this line fixes a bug where parallel gives an error about "dims cannot be of length 0"
       model = mize::mize(par=inits[[i]], fg=opt, max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search)
     }
@@ -47,7 +47,7 @@ acmtfr_opt = function(Z, Y, numComponents, initialization="random", alpha=1, bet
   } else{
     models = list()
     for(i in 1:nstart){
-      models[[i]] = mize::mize(par=inits[[i]], fg=list("fn"=function(x){return(acmtfr_fun(x,Z,Y))}, "gr"=function(x){return(acmtfr_gradient(x,Z,Y))}), max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search)
+      models[[i]] = mize::mize(par=inits[[i]], fg=list("fn"=function(x){return(acmtfr_fun(x,Z,Y,alpha,beta,epsilon,pi))}, "gr"=function(x){return(acmtfr_gradient(x,Z,Y,alpha,beta,epsilon,pi))}), max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search)
     }
   }
 
@@ -57,6 +57,11 @@ acmtfr_opt = function(Z, Y, numComponents, initialization="random", alpha=1, bet
     models[[i]]$init = vect_to_fac(inits[[i]], Z, sortComponents=sortComponents)
     models[[i]]$varExp = calculateVarExp(models[[i]]$Fac, Z)
     models[[i]]$varExpPerComponent = calcVarExpPerComponent(models[[i]]$Fac, Z)
+
+    A = models[[i]]$Fac[[1]]
+    models[[i]]$rho = solve(t(A) %*% A) %*% t(A) %*% Y
+    models[[i]]$Yhat = A %*% models[[i]]$rho
+    models[[i]]$varExpY = sum(models[[i]]$Yhat^2) / sum(Y^2) * 100
   }
 
   # Return all models if specified, otherwise return only the best model
