@@ -4,6 +4,7 @@
 #' @param numComponents Integer stating the number of desired components for the CMTF model.
 #' @param initialization Initialization method, either "random" or "nvec" (default "random"). Random will initialize random input vectors. Nvec will initialize vectors according to an singular value decomposition of the (matricized, if needed) concatenated datasets per mode.
 #' @param output How to return output: as a "Fac" object (default) or vectorized ("vect").
+#' @param Y Used as dependent variable when initialization is set to "npls". Not used by default.
 #'
 #' @return List or vector of initialized input vectors per mode.
 #' @export
@@ -23,7 +24,7 @@
 #' Z = setupCMTFdata(datasets, modes, normalize=FALSE)
 #'
 #' init = initializeCMTF(Z, 1)
-initializeCMTF = function(Z, numComponents, initialization="random", output="Fac"){
+initializeCMTF = function(Z, numComponents, initialization="random", output="Fac", Y=NULL){
 
   init = list()
   numModes = max(unlist(Z$modes))
@@ -50,6 +51,16 @@ initializeCMTF = function(Z, numComponents, initialization="random", output="Fac
 
       df = do.call(cbind, eligibleDatasets)
       init[[i]] = svd(df, numComponents)$u
+    }
+  } else if(initialization == "npls"){
+
+    for(p in 1:numDatasets){
+      fit = sNPLS::sNPLS(Z$object[[p]]@data, Y, ncomp=numComponents, threshold_j=0, threshold_k=0, scale.X=FALSE, center.X=FALSE, silent=TRUE, method="sNPLS")
+      relevantModes = Z$modes[[p]]
+
+      for(i in 1:length(relevantModes)){
+        init[[relevantModes[i]]] = matrix(fit[[i]], dim(fit[[i]]))
+      }
     }
   }
 

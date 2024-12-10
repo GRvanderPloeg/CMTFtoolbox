@@ -104,3 +104,22 @@ test_that("the correct mode 3 components are found using nvecs", {
   result = initializeCMTF(Z, 1, initialization="nvec")
   expect_equal(abs(cor(result[[3]], C))[1,1], 1, tolerance=0.01)
 })
+
+test_that("the correct components are found using npls", {
+  set.seed(123)
+  A = rnorm(108)
+  B = rnorm(100)
+  C = rnorm(10)
+  D = rnorm(100)
+  E = rnorm(10)
+
+  df1 = reinflateTensor(A,B,C)
+  df2 = reinflateTensor(A,D,E)
+  datasets = list(df1, df2)
+  modes = list(c(1,2,3), c(1,4,5))
+  Z = setupCMTFdata(datasets, modes)
+  Y = matrix(A)
+
+  result = initializeCMTF(Z, 1, initialization="npls", Y=Y)
+  expect_equal(cor(result[[1]], Y)[1,1], 1)
+})

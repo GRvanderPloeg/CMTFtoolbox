@@ -3,6 +3,7 @@
 #' @inherit acmtf_opt
 #' @inherit acmtfr_fun
 #' @inherit acmtfr_gradient
+#' @param initialization Initialization, either "random" (default) or "nvec" for numComponents components of the concatenated data using svd. Ignored and uses NPLS based initialization if pi=0.
 #'
 #' @return List object, similar to [mize::mize()] output. Includes a Fac object of the model, which is a list of components per mode. Also includes an init object giving the initialized input vectors.
 #' @export
@@ -31,7 +32,13 @@ acmtfr_opt = function(Z, Y, numComponents, initialization="random", alpha=1, bet
   # Prepare initialization outside of the main loop to allow it as output
   inits = list()
   for(i in 1:nstart){
-    inits[[i]] = initializeACMTF(Z, numComponents, initialization, output="vect")
+
+    if(pi == 0){
+      inits[[i]] = initializeACMTF(Z, numComponents, initialization="npls", output="vect", Y=Y)
+    } else{
+      inits[[i]] = initializeACMTF(Z, numComponents, initialization, output="vect")
+    }
+
   }
 
   # Create nstart models, in parallel if requested

@@ -33,7 +33,7 @@ acmtfr_opt(
 
 \item{numComponents}{Number of components}
 
-\item{initialization}{Initialization, either "random" (default) or "nvec" for numComponents components of the concatenated data using svd.}
+\item{initialization}{Initialization, either "random" (default) or "nvec" for numComponents components of the concatenated data using svd. Ignored and uses NPLS based initialization if pi=0.}
 
 \item{alpha}{Scalar penalizing the components to be norm 1 (default 1).}
 
