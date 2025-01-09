@@ -32,13 +32,7 @@ acmtfr_opt = function(Z, Y, numComponents, initialization="random", alpha=1, bet
   # Prepare initialization outside of the main loop to allow it as output
   inits = list()
   for(i in 1:nstart){
-
-    if(pi == 0){
-      inits[[i]] = initializeACMTF(Z, numComponents, initialization="npls", output="vect", Y=Y)
-    } else{
-      inits[[i]] = initializeACMTF(Z, numComponents, initialization, output="vect")
-    }
-
+    inits[[i]] = initializeACMTF(Z, numComponents, initialization, output="vect")
   }
 
   # Create nstart models, in parallel if requested
