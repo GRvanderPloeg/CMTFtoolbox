@@ -136,7 +136,7 @@ test_that("dev mode finds the same solution as normal mode", {
   modes = list(c(1,2,3), c(1,4,5))
   Z = setupCMTFdata(datasets, modes, normalize=FALSE)
 
-  model1 = cmtf_opt(Z, 1, dev=FALSE)
-  model2 = cmtf_opt(Z, 1, dev=TRUE)
+  model1 = cmtf_opt(Z, 1, initialization="nvec", dev=FALSE)
+  model2 = cmtf_opt(Z, 1, initialization="nvec", dev=TRUE)
   expect_equal(model1$f, model2$f, tolerance=0.1)
 })

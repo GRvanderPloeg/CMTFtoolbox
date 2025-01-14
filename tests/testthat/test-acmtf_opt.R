@@ -162,7 +162,7 @@ test_that("dev mode finds the same solution as regular case", {
   modes = list(c(1,2,3), c(1,4,5))
   Z = setupCMTFdata(datasets, modes)
 
-  model1 = acmtf_opt(Z, 1, dev=FALSE)
-  model2 = acmtf_opt(Z, 1, dev=TRUE)
-  expect_equal(model1$f, model2$f, tol=0.1)
+  model1 = acmtf_opt(Z, 1, initialization="nvec", dev=FALSE)
+  model2 = acmtf_opt(Z, 1, initialization="nvec", dev=TRUE)
+  expect_equal(model1$f, model2$f, tolerance=0.1)
 })
