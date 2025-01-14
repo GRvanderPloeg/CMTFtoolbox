@@ -57,6 +57,12 @@ acmtf_opt = function(Z, numComponents, initialization="random", alpha=1, beta=re
     models[[i]]$init = vect_to_fac(inits[[i]], Z, sortComponents=sortComponents)
     models[[i]]$varExp = calculateVarExp(models[[i]]$Fac, Z)
     models[[i]]$varExpPerComponent = calcVarExpPerComponent(models[[i]]$Fac, Z)
+
+    # Penalties per term
+    loss_terms = acmtf_fun(models[[i]]$par, Z, alpha, beta, epsilon, manual=TRUE)
+    models[[i]]$f_per_block = loss_terms[[1]]
+    models[[i]]$f_norms = loss_terms[[2]]
+    models[[i]]$f_lambda = loss_terms[[3]]
   }
 
   # Return all models if specified, otherwise return only the best model

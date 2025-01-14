@@ -66,6 +66,7 @@ cmtf_opt = function(Z, numComponents, initialization="random", cg_update="HS", l
     models[[i]]$init = vect_to_fac(inits[[i]], Z, sortComponents=sortComponents)
     models[[i]]$varExp = calculateVarExp(models[[i]]$Fac, Z)
     models[[i]]$varExpPerComponent = calcVarExpPerComponent(models[[i]]$Fac, Z)
+    models[[i]]$f_per_block = cmtf_fun(models[[i]]$par, Z, manual=TRUE)
   }
 
   # Return all models if specified, otherwise return only the best model

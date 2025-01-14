@@ -63,6 +63,13 @@ acmtfr_opt = function(Z, Y, numComponents, initialization="random", alpha=1, bet
     models[[i]]$rho = solve(t(A) %*% A) %*% t(A) %*% Y
     models[[i]]$Yhat = A %*% models[[i]]$rho
     models[[i]]$varExpY = sum(models[[i]]$Yhat^2) / sum(Y^2) * 100
+
+    # Calculate loss terms
+    loss_terms = acmtfr_fun(models[[i]]$par, Z, Y, alpha, beta, epsilon, pi, manual=TRUE)
+    models[[i]]$f_per_block = loss_terms[[1]]
+    models[[i]]$f_y = loss_terms[[2]]
+    models[[i]]$f_norms = loss_terms[[3]]
+    models[[i]]$f_lambda = loss_terms[[4]]
   }
 
   # Return all models if specified, otherwise return only the best model

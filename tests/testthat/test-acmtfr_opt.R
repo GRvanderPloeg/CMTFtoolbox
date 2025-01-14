@@ -68,6 +68,26 @@ test_that("allOutput=TRUE gives a list of expected length", {
   expect_equal(length(results), 10)
 })
 
+test_that("the sum of all loss terms is equal to f", {
+  set.seed(123)
+  A = array(rnorm(108*2), c(108, 2))
+  B = array(rnorm(100*2), c(100, 2))
+  C = array(rnorm(10*2), c(10, 2))
+  D = array(rnorm(100*2), c(100, 2))
+  E = array(rnorm(10*2), c(10, 2))
+
+  df1 = reinflateTensor(A, B, C)
+  df2 = reinflateTensor(A, D, E)
+  datasets = list(df1, df2)
+  modes = list(c(1,2,3), c(1,4,5))
+  Z = setupCMTFdata(datasets, modes)
+  Y = matrix(rnorm(108), nrow=108, ncol=1)
+
+  model = acmtfr_opt(Z, Y, 2, initialization="random", nstart=1, max_iter=2)
+  f = sum(model$f_per_block) + model$f_y + sum(model$f_norms) + sum(model$f_lambda)
+  expect_equal(model$f, f)
+})
+
 test_that("running in parallel works", {
   skip_on_cran()
 

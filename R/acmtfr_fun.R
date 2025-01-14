@@ -7,8 +7,9 @@
 #' @param beta Beta value of the loss function as specified by Acar et al., 2014
 #' @param epsilon Epsilon value of the loss function as specified by Acar et al., 2014
 #' @param pi Pi value of the loss function as specified by Van der Ploeg et al., 2025.
+#' @param manual Manual calculation of each loss term (default FALSE).
 #'
-#' @return Scalar of the loss function value.
+#' @return Scalar of the loss function value (when manual=FALSE), otherwise a list containing all loss terms.
 #' @export
 #'
 #' @examples
@@ -27,7 +28,7 @@
 #'
 #' init = initializeACMTF(Z, 2, output="vect")
 #' f = acmtfr_fun(init, Z, Y)
-acmtfr_fun = function(x, Z, Y, alpha=1, beta=rep(1e-3, length(Z$object)), epsilon=1e-8, pi=0.5){
+acmtfr_fun = function(x, Z, Y, alpha=1, beta=rep(1e-3, length(Z$object)), epsilon=1e-8, pi=0.5, manual=FALSE){
 
   numDatasets = length(Z$object)
   numModes = max(unlist(Z$modes))
@@ -36,7 +37,7 @@ acmtfr_fun = function(x, Z, Y, alpha=1, beta=rep(1e-3, length(Z$object)), epsilo
   reinflatedBlocks = reinflateFac(Fac, Z, returnAsTensor=TRUE)
 
   # Penalty for fit on X
-  f = 0
+  f_per_block = rep(NA, numDatasets)
   for(p in 1:numDatasets){
     modes = Z$modes[[p]]
     reinflatedBlock = reinflatedBlocks[[p]]
@@ -44,7 +45,7 @@ acmtfr_fun = function(x, Z, Y, alpha=1, beta=rep(1e-3, length(Z$object)), epsilo
     residuals = Z$missing[[p]] * residuals
 
     Fnorm = rTensor::fnorm(residuals) # verified to work for matrices too
-    f = f + 0.5 * pi * Fnorm^2
+    f_per_block[p] = 0.5 * pi * Fnorm^2
   }
 
   # Penalty for fit on Y
@@ -53,22 +54,29 @@ acmtfr_fun = function(x, Z, Y, alpha=1, beta=rep(1e-3, length(Z$object)), epsilo
   Yhat = A %*% coefs
   Yres = Y - Yhat
   Ynorm = norm(Yres, "2")
-  f = f + 0.5 * (1-pi) * Ynorm^2
+  f_y = 0.5 * (1-pi) * Ynorm^2
 
   # Penalty to make the solution norm 1
+  f_norm = matrix(NA, nrow=numModes, ncol=numComponents)
   for(i in 1:numModes){
     for(j in 1:numComponents){
-      f = f + 0.5 * alpha * (norm(as.matrix(Fac[[i]][,j]), "2")-1)^2
+      f_norm[i,j] = 0.5 * alpha * (norm(as.matrix(Fac[[i]][,j]), "2")-1)^2
     }
   }
 
   # Penalty on the lambdas
+  f_lambda = matrix(NA, nrow=numComponents, ncol=numDatasets)
   for(i in 1:numComponents){
     for(p in 1:numDatasets){
       lambda_r = Fac[[numModes+1]][p,i]
-      f = f + 0.5 * beta[p] * (sqrt(lambda_r^2 + epsilon))
+      f_lambda[i,p] = 0.5 * beta[p] * (sqrt(lambda_r^2 + epsilon))
     }
   }
 
-  return(f)
+  if(manual == FALSE){
+    f = sum(f_per_block) + f_y + sum(f_norm) + sum(f_lambda)
+    return(f)
+  } else{
+    return(list(f_per_block, f_y, f_norm, f_lambda))
+  }
 }

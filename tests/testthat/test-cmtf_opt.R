@@ -69,6 +69,40 @@ test_that("allOutput=TRUE gives a list of expected length", {
   expect_equal(length(results), 10)
 })
 
+test_that("the loss term per block has the correct length", {
+  set.seed(123)
+  A = array(rnorm(108*2), c(108, 2))
+  B = array(rnorm(100*2), c(100, 2))
+  C = array(rnorm(10*2), c(10, 2))
+  D = array(rnorm(100*2), c(100, 2))
+  E = array(rnorm(10*2), c(10, 2))
+
+  df1 = reinflateTensor(A, B, C)
+  df2 = reinflateTensor(A, D, E)
+  datasets = list(df1, df2)
+  modes = list(c(1,2,3), c(1,4,5))
+  Z = setupCMTFdata(datasets, modes, normalize=FALSE)
+  model = cmtf_opt(Z, 1, max_iter=2)
+  expect_true(length(model$f_per_block)==2)
+})
+
+test_that("the sum of the the loss term per block is equal to the overall loss", {
+  set.seed(123)
+  A = array(rnorm(108*2), c(108, 2))
+  B = array(rnorm(100*2), c(100, 2))
+  C = array(rnorm(10*2), c(10, 2))
+  D = array(rnorm(100*2), c(100, 2))
+  E = array(rnorm(10*2), c(10, 2))
+
+  df1 = reinflateTensor(A, B, C)
+  df2 = reinflateTensor(A, D, E)
+  datasets = list(df1, df2)
+  modes = list(c(1,2,3), c(1,4,5))
+  Z = setupCMTFdata(datasets, modes, normalize=FALSE)
+  model = cmtf_opt(Z, 1, max_iter=2)
+  expect_equal(sum(model$f_per_block), model$f)
+})
+
 test_that("running in parallel works", {
   skip_on_cran()
 
