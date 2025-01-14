@@ -49,7 +49,8 @@
 <span>  alpha <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  beta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.001</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">Z</span><span class="op">$</span><span class="va">object</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  epsilon <span class="op">=</span> <span class="fl">1e-08</span>,</span>
-<span>  pi <span class="op">=</span> <span class="fl">0.5</span></span>
+<span>  pi <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  manual <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -84,10 +85,14 @@
 <dt id="arg-pi">pi<a class="anchor" aria-label="anchor" href="#arg-pi"></a></dt>
 <dd><p>Pi value of the loss function as specified by Van der Ploeg et al., 2025.</p></dd>
 
+
+<dt id="arg-manual">manual<a class="anchor" aria-label="anchor" href="#arg-manual"></a></dt>
+<dd><p>Manual calculation of each loss term (default FALSE).</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>Scalar of the loss function value.</p>
+    <p>Scalar of the loss function value (when manual=FALSE), otherwise a list containing all loss terms.</p>
     </div>
 
     <div class="section level2">
