@@ -11,7 +11,8 @@ acmtfr_fun(
   alpha = 1,
   beta = rep(0.001, length(Z$object)),
   epsilon = 1e-08,
-  pi = 0.5
+  pi = 0.5,
+  manual = FALSE
 )
 }
 \arguments{
@@ -28,9 +29,11 @@ acmtfr_fun(
 \item{epsilon}{Epsilon value of the loss function as specified by Acar et al., 2014}
 
 \item{pi}{Pi value of the loss function as specified by Van der Ploeg et al., 2025.}
+
+\item{manual}{Manual calculation of each loss term (default FALSE).}
 }
 \value{
-Scalar of the loss function value.
+Scalar of the loss function value (when manual=FALSE), otherwise a list containing all loss terms.
 }
 \description{
 Calculate function value of ACMTF

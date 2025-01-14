@@ -9,7 +9,8 @@ acmtf_fun(
   Z,
   alpha = 1,
   beta = rep(0.001, length(Z$object)),
-  epsilon = 1e-08
+  epsilon = 1e-08,
+  manual = FALSE
 )
 }
 \arguments{
@@ -22,9 +23,11 @@ acmtf_fun(
 \item{beta}{Beta value of the loss function as specified by Acar et al., 2014}
 
 \item{epsilon}{Epsilon value of the loss function as specified by Acar et al., 2014}
+
+\item{manual}{Manual calculation of each loss term (default FALSE)}
 }
 \value{
-Scalar of the loss function value.
+Scalar of the loss function value (when manual=FALSE), otherwise a list containing all loss terms
 }
 \description{
 Calculate function value of ACMTF
