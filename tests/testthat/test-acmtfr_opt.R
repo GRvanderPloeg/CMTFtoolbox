@@ -164,3 +164,18 @@ test_that("pi=0 throws no errors", {
 
   expect_no_error(acmtfr_opt(Z,Y,2,initialization="random",pi=0, nstart=1, max_iter=10))
 })
+
+test_that("dev mode and regular mode find similar solutions", {
+  I = 108
+  J = 100
+  K = 10
+  df = array(rnorm(I*J*K), c(I,J,K))
+  datasets = list(df, df)
+  Y = matrix(rnorm(108), nrow=108, ncol=1)
+  modes = list(c(1,2,3), c(1,4,5))
+  Z = setupCMTFdata(datasets, modes)
+
+  model1 = acmtfr_opt(Z, Y, 1, dev=FALSE)
+  model2 = acmtfr_opt(Z, Y, 1, dev=TRUE)
+  expect_equal(model1$f, model2$f, tol=0.1)
+})

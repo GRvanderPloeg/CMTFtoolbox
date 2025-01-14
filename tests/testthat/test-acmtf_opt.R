@@ -152,3 +152,17 @@ test_that("acmtf_opt works when including a vector Y (3 comp)", {
 
   expect_no_error(acmtf_opt(Z,numComponents,initialization="random", max_iter=2))
 })
+
+test_that("dev mode finds the same solution as regular case", {
+  I = 108
+  J = 100
+  K = 10
+  df = array(rnorm(I*J*K), c(I,J,K))
+  datasets = list(df, df)
+  modes = list(c(1,2,3), c(1,4,5))
+  Z = setupCMTFdata(datasets, modes)
+
+  model1 = acmtf_opt(Z, 1, dev=FALSE)
+  model2 = acmtf_opt(Z, 1, dev=TRUE)
+  expect_equal(model1$f, model2$f, tol=0.1)
+})

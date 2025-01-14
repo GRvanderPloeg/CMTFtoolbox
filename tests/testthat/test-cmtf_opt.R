@@ -121,3 +121,22 @@ test_that("running in parallel works", {
 
   expect_no_error(cmtf_opt(Z,2,initialization="random", nstart=2, max_iter=2, numCores=2))
 })
+
+test_that("dev mode finds the same solution as normal mode", {
+  set.seed(123)
+  A = array(rnorm(108*2), c(108, 2))
+  B = array(rnorm(100*2), c(100, 2))
+  C = array(rnorm(10*2), c(10, 2))
+  D = array(rnorm(100*2), c(100, 2))
+  E = array(rnorm(10*2), c(10, 2))
+
+  df1 = reinflateTensor(A, B, C)
+  df2 = reinflateTensor(A, D, E)
+  datasets = list(df1, df2)
+  modes = list(c(1,2,3), c(1,4,5))
+  Z = setupCMTFdata(datasets, modes, normalize=FALSE)
+
+  model1 = cmtf_opt(Z, 1, dev=FALSE)
+  model2 = cmtf_opt(Z, 1, dev=TRUE)
+  expect_equal(model1$f, model2$f, tolerance=0.1)
+})
