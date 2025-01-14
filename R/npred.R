@@ -55,27 +55,36 @@ npred = function(model, newX, Z, sharedMode=1){
   # Combine Zproj elements and vectorize newX
   vectZ = do.call(rbind, Zproj)
 
-  if(length(dim(newX[[1]])) > 2){
-    vectX = lapply(newX, function(x){t(rTensor::k_unfold(rTensor::as.tensor(x), 1)@data)})
-    vectX = do.call(rbind, vectX)
+  # Check if X has multiple samples
+  if (length(dim(newX[[1]])) > 2){
+    numSamples = dim(newX[[1]])[1]
   } else{
-    vectX = as.matrix(unlist(lapply(newX, c)))
+    numSamples = 1
   }
+  Ypred = rep(NA, numSamples)
 
-  # Identify missing values in X, remove those from the calculation
-  mask = !is.na(vectX)
-  vectZ = vectZ[mask,]
-  vectX = vectX[mask,]
+  # Calculate Ypred per sample
+  # This is needed because you need to mask based on missing values per sample
+  for(i in 1:numSamples){
 
-  # Project vectX onto the latent space to obtain scores per component
-  Zplus = pracma::pinv(vectZ)
-  newA = Zplus %*% vectX
+    if(numSamples > 1){
+      newX_small = lapply(newX, function(x){x[i,,]})
+      vectX = as.matrix(unlist(lapply(newX_small, c)))
+    } else{
+      vectX = as.matrix(unlist(lapply(newX, c)))
+    }
 
-  # Predict Y
-  if(length(dim(newX[[1]])) > 2){
-    Ypred = newA %*% model$rho
-  } else{
-    Ypred = sum(newA * model$rho)
+    # Identify missing values in X, remove those from the calculation
+    mask = !is.na(vectX)
+    vectZ_small = vectZ[mask,]
+    vectX_small = vectX[mask,]
+
+    # Project vectX onto the latent space to obtain scores per component
+    Zplus = pracma::pinv(as.matrix(vectZ_small))
+    newA = Zplus %*% vectX_small
+
+    # Predict Y
+    Ypred[i] = sum(newA * model$rho)
   }
 
   return(Ypred)

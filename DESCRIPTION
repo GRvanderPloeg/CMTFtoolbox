@@ -19,6 +19,7 @@ Imports:
     mize,
     multiway,
     parallel,
+    pracma,
     rTensor,
     sNPLS,
     stats,
