@@ -59,8 +59,8 @@ acmtfr_opt = function(Z, Y, numComponents, initialization="random", alpha=1, bet
   for(i in 1:nstart){
     models[[i]]$Fac = vect_to_fac(models[[i]]$par, Z, sortComponents=sortComponents)
     models[[i]]$init = vect_to_fac(inits[[i]], Z, sortComponents=sortComponents)
-    models[[i]]$varExp = calculateVarExp(models[[i]]$Fac, Z)
-    models[[i]]$varExpPerComponent = calcVarExpPerComponent(models[[i]]$Fac, Z)
+    models[[i]]$varExp = calculateVarExp(models[[i]]$Fac, Z) * 100
+    models[[i]]$varExpPerComponent = calcVarExpPerComponent(models[[i]]$Fac, Z) * 100
 
     A = models[[i]]$Fac[[1]]
     models[[i]]$rho = solve(t(A) %*% A) %*% t(A) %*% Y
