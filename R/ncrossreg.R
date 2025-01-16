@@ -69,8 +69,8 @@ ncrossreg = function(Z, Y, maxNumComponents=5, alpha=1, beta=rep(1e-3, length(Z$
   }
 
   # Gather model statistics
-  varExpX = do.call(rbind, lapply(models, FUN=function(x){x$varExp}))
-  varExpY = do.call(rbind, lapply(models, FUN=function(x){x$varExpY}))
+  varExpX = do.call(rbind, lapply(models, FUN=function(x){x$varExp})) * 100
+  varExpY = do.call(rbind, lapply(models, FUN=function(x){x$varExpY})) * 100
 
   Ypred = rep(NA, nrow(settings))
   Yreal = rep(NA, nrow(settings))
