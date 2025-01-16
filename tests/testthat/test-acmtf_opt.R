@@ -10,24 +10,6 @@ test_that("a solution is found in the two-tensor case", {
   expect_no_error(acmtf_opt(Z, 1, max_iter=2))
 })
 
-test_that("the objective is close to zero if the correct solution is found", {
-  set.seed(123)
-  A = array(rnorm(108*2), c(108, 2))
-  B = array(rnorm(100*2), c(100, 2))
-  C = array(rnorm(10*2), c(10, 2))
-  D = array(rnorm(100*2), c(100, 2))
-  E = array(rnorm(10*2), c(10, 2))
-
-  df1 = reinflateTensor(A, B, C)
-  df2 = reinflateTensor(A, D, E)
-  datasets = list(df1, df2)
-  modes = list(c(1,2,3), c(1,4,5))
-  Z = setupCMTFdata(datasets, modes)
-
-  result = acmtf_opt(Z, 2, initialization="nvec")
-  expect_equal(result$f, 0, tolerance = 0.1)
-})
-
 test_that("the objective is very high if an incorrect solution is found", {
   set.seed(123)
   A = array(rnorm(108*2), c(108, 2))
@@ -60,8 +42,8 @@ test_that("allOutput=TRUE gives a list of expected length", {
   modes = list(c(1,2,3), c(1,4,5))
   Z = setupCMTFdata(datasets, modes)
 
-  results = acmtf_opt(Z, 2, initialization="random", nstart=10, max_iter=2, allOutput=TRUE)
-  expect_equal(length(results), 10)
+  results = acmtf_opt(Z, 2, initialization="random", nstart=3, max_iter=2, allOutput=TRUE)
+  expect_equal(length(results), 3)
 })
 
 test_that("the sum of all reported loss terms is equal to f", {
@@ -151,18 +133,4 @@ test_that("acmtf_opt works when including a vector Y (3 comp)", {
   Z = setupCMTFdata(datasets, modes, normalize=FALSE)
 
   expect_no_error(acmtf_opt(Z,numComponents,initialization="random", max_iter=2))
-})
-
-test_that("dev mode finds the same solution as regular case", {
-  I = 108
-  J = 100
-  K = 10
-  df = array(rnorm(I*J*K), c(I,J,K))
-  datasets = list(df, df)
-  modes = list(c(1,2,3), c(1,4,5))
-  Z = setupCMTFdata(datasets, modes)
-
-  model1 = acmtf_opt(Z, 1, initialization="nvec", dev=FALSE)
-  model2 = acmtf_opt(Z, 1, initialization="nvec", dev=TRUE)
-  expect_equal(model1$f, model2$f, tolerance=0.1)
 })

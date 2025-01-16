@@ -14,7 +14,6 @@
 #' @param numCores Number of cores to use (default 1). If set higher than one, the package will attempt to run in parallel.
 #' @param sortComponents Sort the components in the output by descending order of variation explained.
 #' @param allOutput Return all created models. Ignored if nstart=1.
-#' @param dev Developer Mode: returns the model for every iteration (default FALSE).
 #'
 #' @return List object, similar to [mize::mize()] output. Includes a Fac object of the model, which is a list of components per mode. Also includes an init object giving the initialized input vectors.
 #' @export
@@ -34,7 +33,7 @@
 #' Z = setupCMTFdata(datasets, modes, normalize=FALSE)
 #'
 #' model = cmtf_opt(Z, 1, rel_tol=1e-4) # quick convergence for example only
-cmtf_opt = function(Z, numComponents, initialization="random", cg_update="HS", line_search="MT", max_iter=10000, max_fn=10000, abs_tol=1e-8, rel_tol=1e-8, grad_tol=1e-8, nstart=1, numCores=1, sortComponents=TRUE, allOutput=FALSE, dev=FALSE){
+cmtf_opt = function(Z, numComponents, initialization="random", cg_update="HS", line_search="MT", max_iter=10000, max_fn=10000, abs_tol=1e-8, rel_tol=1e-8, grad_tol=1e-8, nstart=1, numCores=1, sortComponents=TRUE, allOutput=FALSE){
   numModes = max(unlist(Z$modes))
   numDatasets = length(Z$object)
 
@@ -49,34 +48,18 @@ cmtf_opt = function(Z, numComponents, initialization="random", cg_update="HS", l
     cl = parallel::makeCluster(numCores)
     doParallel::registerDoParallel(cl)
 
-    if(dev==TRUE){ # DEVELOPER MODE
-      models = foreach::foreach(i=1:nstart) %dopar% {
-        fg = list("fn"=function(x){return(CMTFtoolbox::cmtf_fun(x,Z))}, "gr"=function(x){return(CMTFtoolbox::cmtf_gradient(x,Z))})
-        print(dim(Z$object[[1]])) # somehow this line fixes a bug where parallel gives an error about "dims cannot be of length 0"
-        model = CMTFtoolbox::mize_runner(inits[[i]], fg, max_iter, max_fn, abs_tol, rel_tol, grad_tol, cg_update, line_search)
-      }
-    } else{ # NORMAL MODE
-      models = foreach::foreach(i=1:nstart) %dopar% {
-        fg = list("fn"=function(x){return(CMTFtoolbox::cmtf_fun(x,Z))}, "gr"=function(x){return(CMTFtoolbox::cmtf_gradient(x,Z))})
-        print(dim(Z$object[[1]])) # somehow this line fixes a bug where parallel gives an error about "dims cannot be of length 0"
-        model = mize::mize(par=inits[[i]], fg=fg, max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search, store_progress=TRUE)
-      }
+    models = foreach::foreach(i=1:nstart) %dopar% {
+      fg = list("fn"=function(x){return(CMTFtoolbox::cmtf_fun(x,Z))}, "gr"=function(x){return(CMTFtoolbox::cmtf_gradient(x,Z))})
+      print(dim(Z$object[[1]])) # somehow this line fixes a bug where parallel gives an error about "dims cannot be of length 0"
+      model = mize::mize(par=inits[[i]], fg=fg, max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search, store_progress=TRUE)
     }
-
     parallel::stopCluster(cl)
+
   } else{
     models = list()
-
-    if(dev==TRUE){ # DEVELOPER MODE
-      for(i in 1:nstart){
-        fg = list("fn"=function(x){return(CMTFtoolbox::cmtf_fun(x,Z))}, "gr"=function(x){return(CMTFtoolbox::cmtf_gradient(x,Z))})
-        models[[i]] = CMTFtoolbox::mize_runner(inits[[i]], fg, max_iter, max_fn, abs_tol, rel_tol, grad_tol, cg_update, line_search)
-        }
-    } else{ # NORMAL MODE
-      for(i in 1:nstart){
-        fg = list("fn"=function(x){return(CMTFtoolbox::cmtf_fun(x,Z))}, "gr"=function(x){return(CMTFtoolbox::cmtf_gradient(x,Z))})
-        models[[i]] = mize::mize(par=inits[[i]], fg=fg, max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search, store_progress=TRUE)
-      }
+    for(i in 1:nstart){
+      fg = list("fn"=function(x){return(CMTFtoolbox::cmtf_fun(x,Z))}, "gr"=function(x){return(CMTFtoolbox::cmtf_gradient(x,Z))})
+      models[[i]] = mize::mize(par=inits[[i]], fg=fg, max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search, store_progress=TRUE)
     }
   }
 

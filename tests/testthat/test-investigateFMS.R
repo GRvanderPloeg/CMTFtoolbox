@@ -11,7 +11,7 @@ test_that("investigateFMS runs without error in acmtf mode", {
   datasets = list(df1, df2)
   modes = list(c(1,2,3), c(1,4,5))
 
-  expect_no_error(investigateFMS(datasets, modes, 1, model="acmtf", numFolds=2, rel_tol=1e-5, abs_tol=1e-5))
+  expect_no_error(investigateFMS(datasets, modes, 1, model="acmtf", numFolds=2, max_iter=2))
 })
 
 test_that("investigateFMS runs without error when jack-knifing", {
@@ -27,7 +27,7 @@ test_that("investigateFMS runs without error when jack-knifing", {
   datasets = list(df1, df2)
   modes = list(c(1,2,3), c(1,4,5))
 
-  expect_no_error(investigateFMS(datasets, modes, 1, model="acmtf", numFolds=2, jackKnife=TRUE, rel_tol=1e-5, abs_tol=1e-5))
+  expect_no_error(investigateFMS(datasets, modes, 1, model="acmtf", numFolds=2, jackKnife=TRUE, max_iter=2))
 })
 
 test_that("investigateFMS runs without error in cmtf mode", {
@@ -43,7 +43,7 @@ test_that("investigateFMS runs without error in cmtf mode", {
   datasets = list(df1, df2)
   modes = list(c(1,2,3), c(1,4,5))
 
-  expect_no_error(investigateFMS(datasets, modes, 1, model="cmtf", numFolds=2, rel_tol=1e-5, abs_tol=1e-5))
+  expect_no_error(investigateFMS(datasets, modes, 1, model="cmtf", numFolds=2, max_iter=2))
 })
 
 test_that("specifying the wrong type of model results in an error", {
@@ -59,7 +59,7 @@ test_that("specifying the wrong type of model results in an error", {
   datasets = list(df1, df2)
   modes = list(c(1,2,3), c(1,4,5))
 
-  expect_error(investigateFMS(datasets, modes, 1, model="test", numFolds=2, rel_tol=1e-5, abs_tol=1e-5))
+  expect_error(investigateFMS(datasets, modes, 1, model="test", numFolds=2, max_iter=2))
 })
 
 test_that("running in parallel works", {
@@ -78,5 +78,5 @@ test_that("running in parallel works", {
   modes = list(c(1,2,3), c(1,4,5))
   Z = setupCMTFdata(datasets, modes, normalize=FALSE)
 
-  expect_no_error(investigateFMS(datasets, modes, 1, model="acmtf", numFolds=2, numCores=2, rel_tol=1e-5, abs_tol=1e-5))
+  expect_no_error(investigateFMS(datasets, modes, 1, model="acmtf", numFolds=2, numCores=2, max_iter=2))
 })

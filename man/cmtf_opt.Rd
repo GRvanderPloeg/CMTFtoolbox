@@ -18,8 +18,7 @@ cmtf_opt(
   nstart = 1,
   numCores = 1,
   sortComponents = TRUE,
-  allOutput = FALSE,
-  dev = FALSE
+  allOutput = FALSE
 )
 }
 \arguments{
@@ -50,8 +49,6 @@ cmtf_opt(
 \item{sortComponents}{Sort the components in the output by descending order of variation explained.}
 
 \item{allOutput}{Return all created models. Ignored if nstart=1.}
-
-\item{dev}{Developer Mode: returns the model for every iteration (default FALSE).}
 }
 \value{
 List object, similar to \code{\link[mize:mize]{mize::mize()}} output. Includes a Fac object of the model, which is a list of components per mode. Also includes an init object giving the initialized input vectors.

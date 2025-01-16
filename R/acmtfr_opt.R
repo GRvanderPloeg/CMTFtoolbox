@@ -25,7 +25,7 @@
 #'
 #' # specific setting to reduce runtime for CRAN
 #' model = acmtfr_opt(Z, Y, 2, rel_tol=1e-5, abs_tol=1e-5)
-acmtfr_opt = function(Z, Y, numComponents, initialization="random", alpha=1, beta=rep(1e-3, length(Z$object)), epsilon=1e-8, pi=0.5, cg_update="HS", line_search="MT", max_iter=10000, max_fn=10000, abs_tol=1e-10, rel_tol=1e-10, grad_tol=1e-10, nstart=1, numCores=1, sortComponents=TRUE, allOutput=FALSE, dev=FALSE){
+acmtfr_opt = function(Z, Y, numComponents, initialization="random", alpha=1, beta=rep(1e-3, length(Z$object)), epsilon=1e-8, pi=0.5, cg_update="HS", line_search="MT", max_iter=10000, max_fn=10000, abs_tol=1e-10, rel_tol=1e-10, grad_tol=1e-10, nstart=1, numCores=1, sortComponents=TRUE, allOutput=FALSE){
   numModes = max(unlist(Z$modes))
   numDatasets = length(Z$object)
 
@@ -40,36 +40,19 @@ acmtfr_opt = function(Z, Y, numComponents, initialization="random", alpha=1, bet
     cl = parallel::makeCluster(numCores)
     doParallel::registerDoParallel(cl)
 
-    if(dev==TRUE){ # DEVELOPER MODE
-      models = foreach::foreach(i=1:nstart) %dopar% {
-        fg = list("fn"=function(x){return(CMTFtoolbox::acmtfr_fun(x,Z,Y,alpha,beta,epsilon,pi))}, "gr"=function(x){return(CMTFtoolbox::acmtfr_gradient(x,Z,Y,alpha,beta,epsilon,pi))})
-        print(dim(Z$object[[1]])) # somehow this line fixes a bug where parallel gives an error about "dims cannot be of length 0"
-        model = CMTFtoolbox::mize_runner(inits[[i]], fg, max_iter, max_fn, abs_tol, rel_tol, grad_tol, cg_update, line_search)
-      }
-    } else{ # NORMAL MODE
-      models = foreach::foreach(i=1:nstart) %dopar% {
-        fg = list("fn"=function(x){return(CMTFtoolbox::acmtfr_fun(x,Z,Y,alpha,beta,epsilon,pi))}, "gr"=function(x){return(CMTFtoolbox::acmtfr_gradient(x,Z,Y,alpha,beta,epsilon,pi))})
-        print(dim(Z$object[[1]])) # somehow this line fixes a bug where parallel gives an error about "dims cannot be of length 0"
-        model = mize::mize(par=inits[[i]], fg=fg, max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search)
-      }
+    models = foreach::foreach(i=1:nstart) %dopar% {
+      fg = list("fn"=function(x){return(CMTFtoolbox::acmtfr_fun(x,Z,Y,alpha,beta,epsilon,pi))}, "gr"=function(x){return(CMTFtoolbox::acmtfr_gradient(x,Z,Y,alpha,beta,epsilon,pi))})
+      print(dim(Z$object[[1]])) # somehow this line fixes a bug where parallel gives an error about "dims cannot be of length 0"
+      model = mize::mize(par=inits[[i]], fg=fg, max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search)
     }
-
     parallel::stopCluster(cl)
+
   } else{
     models = list()
-
-    if(dev==TRUE){ # DEVELOPER MODE
-      for(i in 1:nstart){
-        fg = list("fn"=function(x){return(CMTFtoolbox::acmtfr_fun(x,Z,Y,alpha,beta,epsilon,pi))}, "gr"=function(x){return(CMTFtoolbox::acmtfr_gradient(x,Z,Y,alpha,beta,epsilon,pi))})
-        models[[i]] = CMTFtoolbox::mize_runner(inits[[i]], fg, max_iter, max_fn, abs_tol, rel_tol, grad_tol, cg_update, line_search)
-      }
-    } else{ # NORMAL MODE
-      for(i in 1:nstart){
-        fg = list("fn"=function(x){return(CMTFtoolbox::acmtfr_fun(x,Z,Y,alpha,beta,epsilon,pi))}, "gr"=function(x){return(CMTFtoolbox::acmtfr_gradient(x,Z,Y,alpha,beta,epsilon,pi))})
-        models[[i]] = mize::mize(par=inits[[i]], fg=fg, max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search)
-      }
+    for(i in 1:nstart){
+      fg = list("fn"=function(x){return(CMTFtoolbox::acmtfr_fun(x,Z,Y,alpha,beta,epsilon,pi))}, "gr"=function(x){return(CMTFtoolbox::acmtfr_gradient(x,Z,Y,alpha,beta,epsilon,pi))})
+      models[[i]] = mize::mize(par=inits[[i]], fg=fg, max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search)
     }
-
   }
 
   # Attach extra model info
