@@ -28,7 +28,12 @@
 #'
 #' init = initializeACMTF(Z, 2, output="vect")
 #' f = acmtfr_fun(init, Z, Y)
-acmtfr_fun = function(x, Z, Y, alpha=1, beta=rep(1e-3, length(Z$object)), epsilon=1e-8, pi=0.5, manual=FALSE){
+acmtfr_fun = function(x, Z, Y,
+                      alpha=1,
+                      beta=rep(1e-3, length(Z$object)),
+                      epsilon=1e-8,
+                      pi=0.5,
+                      manual=FALSE){
 
   numDatasets = length(Z$object)
   numModes = max(unlist(Z$modes))
