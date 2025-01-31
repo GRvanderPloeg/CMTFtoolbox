@@ -55,7 +55,7 @@ acmtfr_fun = function(x, Z, Y,
 
   # Penalty for fit on Y
   A = Fac[[1]]
-  coefs = solve(t(A) %*% A) %*% t(A) %*% Y
+  coefs = safeSolve(t(A) %*% A) %*% t(A) %*% Y
   Yhat = A %*% coefs
   Yres = Y - Yhat
   Ynorm = norm(Yres, "2")

@@ -63,7 +63,7 @@ acmtfr_opt = function(Z, Y, numComponents, initialization="random", alpha=1, bet
     models[[i]]$varExpPerComponent = calcVarExpPerComponent(models[[i]]$Fac, Z) * 100
 
     A = models[[i]]$Fac[[1]]
-    models[[i]]$rho = solve(t(A) %*% A) %*% t(A) %*% Y
+    models[[i]]$rho = safeSolve(t(A) %*% A) %*% t(A) %*% Y
     models[[i]]$Yhat = A %*% models[[i]]$rho
     models[[i]]$varExpY = sum(models[[i]]$Yhat^2) / sum(Y^2) * 100
 

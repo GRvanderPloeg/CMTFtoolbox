@@ -277,3 +277,29 @@ findSharedModes = function(modes){
   }
 
 }
+
+safePseudoInverse = function(M, mu=1e-6){
+
+  attempt = try(pracma::pinv(M), silent=TRUE)
+  if(inherits(attempt, "try-error")){
+    regM = M + mu * diag(ncol(M))
+    inv = pracma::pinv(regM)
+  } else{
+    inv = attempt
+  }
+
+  return(inv)
+}
+
+safeSolve = function(M, mu=1e-6){
+
+  attempt = try(solve(M), silent=TRUE)
+  if(inherits(attempt, "try-error")){
+    regM = M + mu * diag(ncol(M))
+    inv = solve(regM)
+  } else{
+    inv = attempt
+  }
+
+  return(inv)
+}
