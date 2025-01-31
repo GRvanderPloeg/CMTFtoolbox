@@ -18,8 +18,7 @@
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/ACMTF_simulation.html">ACMTF_simulation</a></li>
-    <li><a class="dropdown-item" href="../articles/CMTF_simulation.html">CMTF_simulation</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/CMTF_simulation.html">CMTF_simulation</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -84,10 +83,6 @@
 <dt id="arg-pi">pi<a class="anchor" aria-label="anchor" href="#arg-pi"></a></dt>
 <dd><p>Pi value of the loss function as specified by Van der Ploeg et al., 2025.</p></dd>
 
-
-<dt id="arg-manual">manual<a class="anchor" aria-label="anchor" href="#arg-manual"></a></dt>
-<dd><p>Manual calculation of each loss term (default FALSE).</p></dd>
-
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -110,7 +105,9 @@
 <span class="r-in"><span><span class="va">Y</span> <span class="op">=</span> <span class="va">A</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">init</span> <span class="op">=</span> <span class="fu"><a href="initializeACMTF.html">initializeACMTF</a></span><span class="op">(</span><span class="va">Z</span>, <span class="fl">2</span>, output<span class="op">=</span><span class="st">"vect"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">f</span> <span class="op">=</span> <span class="fu"><a href="acmtfr_fun.html">acmtfr_fun</a></span><span class="op">(</span><span class="va">init</span>, <span class="va">Z</span>, <span class="va">Y</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">outcome</span> <span class="op">=</span> <span class="fu">acmtfr_fg</span><span class="op">(</span><span class="va">init</span>, <span class="va">Z</span>, <span class="va">Y</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">f</span> <span class="op">=</span> <span class="va">outcome</span><span class="op">$</span><span class="va">fn</span></span></span>
+<span class="r-in"><span><span class="va">g</span> <span class="op">=</span> <span class="va">outcome</span><span class="op">$</span><span class="va">gr</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

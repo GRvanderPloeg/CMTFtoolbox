@@ -2,9 +2,8 @@ pandoc: 3.1.11
 pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
-  ACMTF_simulation: ACMTF_simulation.html
   CMTF_simulation: CMTF_simulation.html
-last_built: 2025-01-30T20:04Z
+last_built: 2025-01-31T09:19Z
 urls:
   reference: https://grvanderploeg.github.io/CMTFtoolbox/reference
   article: https://grvanderploeg.github.io/CMTFtoolbox/articles
