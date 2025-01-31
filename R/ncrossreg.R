@@ -2,7 +2,7 @@
 #'
 #' @inherit acmtfr_opt
 #' @param maxNumComponents Maximum number of components to investigate (default 5).
-#' @param nstart Number of randomly initialized models to create per number of components (default 1).
+#' @param nstart Number of randomly initialized models to create per number of components (default 5).
 #' @param numCores Number of cores to use (default 1). Setting this to higher than 1 will make the algorithm run in parallel.
 #'
 #' @return A plot showcasing the variance explained in the X blocks and Y as well as the RMSE of Y.
@@ -30,98 +30,69 @@ ncrossreg = function(Z, Y, maxNumComponents=5, alpha=1, beta=rep(1e-3, length(Z$
   numBlocks = length(Z$object)
   numFolds = Z$sizes[1]
 
+  # Run jack-knifed models to determine RMSE of Y
+
   # Define settings to run in parallel
   settings = expand.grid(f = 1:maxNumComponents, i = seq_len(numFolds))
-  settings = cbind(settings, rep(row.names(settings), each=nstart))
-  colnames(settings) = c("numComponents", "removeIndex", "replicate")
+  colnames(settings) = c("numComponents", "removeIndex")
 
-  # Store models and run for-loop over all settings
-  models = list()
-
-  if(numCores > 1){
-    cl = parallel::makeCluster(numCores)
-    doParallel::registerDoParallel(cl)
-
-    models = foreach::foreach(i=1:nrow(settings)) %dopar% {
-      numComponents = settings[i,1]
-      removeIndex = settings[i,2]
-
-      Xtrain = lapply(Z$object, function(x){x@data[-removeIndex,,]})
-      Ztrain = setupCMTFdata(Xtrain, Z$modes)
-      Ytrain = Y[-removeIndex]
-      Xtest = lapply(Z$object, function(x){x@data[removeIndex,,]})
-
-      models[[i]] = CMTFtoolbox::acmtfr_opt(Ztrain, Ytrain, numComponents=numComponents, alpha=alpha, beta=beta, epsilon=epsilon, pi=pi, cg_update=cg_update, line_search=line_search, max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, nstart=1)
-    }
-
-    parallel::stopCluster(cl)
-  } else{
-    for(i in 1:nrow(settings)){
-      numComponents = settings[i,1]
-      removeIndex = settings[i,2]
-
-      Xtrain = lapply(Z$object, function(x){x@data[-removeIndex,,]})
-      Ztrain = setupCMTFdata(Xtrain, Z$modes)
-      Ytrain = Y[-removeIndex]
-
-      models[[i]] = CMTFtoolbox::acmtfr_opt(Ztrain, Ytrain, numComponents=numComponents, alpha=alpha, beta=beta, epsilon=epsilon, pi=pi, cg_update=cg_update, line_search=line_search, max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, nstart=1)
-    }
-  }
-
-  # Gather model statistics
-  varExpX = do.call(rbind, lapply(models, FUN=function(x){x$varExp}))
-  varExpY = do.call(rbind, lapply(models, FUN=function(x){x$varExpY}))
-
+  # Pre-allocate memory
   Ypred = rep(NA, nrow(settings))
   Yreal = rep(NA, nrow(settings))
+
   for(i in 1:nrow(settings)){
+    numComponents = settings[i,1]
     removeIndex = settings[i,2]
+
     Xtrain = lapply(Z$object, function(x){x@data[-removeIndex,,]})
     Ztrain = setupCMTFdata(Xtrain, Z$modes)
+    Ytrain = Y[-removeIndex]
     Xtest = lapply(Z$object, function(x){x@data[removeIndex,,]})
-    Ypred[i] = npred(models[[i]], Xtest, Ztrain)
+
+    model = CMTFtoolbox::acmtfr_opt(Ztrain, Ytrain, numComponents=numComponents, alpha=alpha, beta=beta, epsilon=epsilon, pi=pi, method=method, cg_update=cg_update, line_search=line_search, max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, nstart=nstart, numCores=numCores)
+    Ypred[i] = npred(model, Xtest, Ztrain)
     Yreal[i] = Y[removeIndex]
   }
 
-  # Prepare plot output
-  a = cbind(settings, varExpX) %>%
-    dplyr::as_tibble() %>%
-    dplyr::mutate(Y = varExpY) %>%
-    dplyr::select(-removeIndex,-replicate) %>%
-    tidyr::pivot_longer(-c(numComponents)) %>%
-    dplyr::group_by(numComponents, name) %>%
-    dplyr::summarise(m=mean(value),ymin=min(value), ymax=max(value)) %>%
-    ggplot2::ggplot(ggplot2::aes(x=numComponents,y=m,col=as.factor(name))) +
-    ggplot2::geom_line() +
-    ggplot2::geom_errorbar(ggplot2::aes(ymin=ymin,ymax=ymax), width=.2) +
-    ggplot2::geom_point() +
-    ggplot2::labs(x="Number of components", y="Variance explained (%)", color="Block")
+  varExpX = matrix(NA, nrow=maxNumComponents, ncol=numBlocks)
+  varExpY = rep(NA, nrow=maxNumComponents)
+  for(i in 1:maxNumComponents){
+    model = CMTFtoolbox::acmtfr_opt(Z, Y, numComponents=numComponents, alpha=alpha, beta=beta, epsilon=epsilon, pi=pi, method=method, cg_update=cg_update, line_search=line_search, max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, nstart=nstart, numCores=numCores)
+    varExpX[i,] = model$varExp
+    varExpY[i] = model$varExpY
+  }
 
-  b = cbind(settings, Yreal, Ypred) %>%
+  # Prepare plot data
+  varExpData = cbind(1:maxNumComponents, varExpX, varExpY) %>%
+    dplyr::as_tibble()
+  colnames(varExpData) = c("numComponents", paste0("X", 1:numBlocks), "Y")
+
+  RMSEdata = cbind(settings, Yreal, Ypred) %>%
     dplyr::as_tibble() %>%
-    dplyr::select(-replicate) %>%
-    dplyr::mutate(replicate = rep(1:nstart, each=nrow(settings)/nstart)) %>%
-    dplyr::mutate(res = Ypred - Yreal) %>%
-    dplyr::mutate(res2 = res^2) %>%
-    dplyr::mutate(term = res2 / numFolds) %>%
-    dplyr::group_by(numComponents, replicate) %>%
-    dplyr::summarise(RMSE = sqrt(sum(term))) %>%
-    dplyr::ungroup() %>%
+    dplyr::mutate(RMSE = (Yreal - Ypred)^2 / max(removeIndex)) %>%
     dplyr::group_by(numComponents) %>%
-    dplyr::summarise(m = mean(RMSE)) %>%
-    ggplot2::ggplot(ggplot2::aes(x=as.factor(numComponents),y=m)) +
-    ggplot2::geom_boxplot() +
-    ggplot2::labs(x="Number of components", y="RMSE")
+    dplyr::summarise(RMSE = sqrt(sum(RMSE)))
+
+  # Prepare plot output
+  a = varExpData %>%
+    tidyr::pivot_longer(-numComponents) %>%
+    ggplot2::ggplot(ggplot2::aes(x = numComponents,y = value, col = as.factor(name))) +
+    ggplot2::geom_path() +
+    ggplot2::geom_point() +
+    ggplot2::labs(x="Number of components", y="Variance explained (%)", color="Block") +
+    ggplot2::scale_x_continuous(breaks=varExpData$numComponents)
+
+  b = RMSEdata %>%
+    ggplot2::ggplot(ggplot2::aes(x = numComponents, y = RMSE)) +
+    ggplot2::geom_path() +
+    ggplot2::geom_point() +
+    ggplot2::labs(x = "Number of components", y = "RMSE") +
+    ggplot2::scale_x_continuous(breaks = RMSEdata$numComponents)
 
   plot = ggpubr::ggarrange(a,b)
-  return(plot)
+  plots = list(plot, a, b)
+  return(list("settings"=settings, "varExp"=varExpData, "RMSE"=RMSEdata, "plots"=plots))
 }
 
 # Ugly solution to namespace issues caused by dplyr
-m <- NULL
-ymin <- NULL
-ymax <- NULL
-res <- NULL
-res2 <- NULL
-term <- NULL
 RMSE <- NULL

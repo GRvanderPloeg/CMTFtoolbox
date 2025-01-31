@@ -198,7 +198,7 @@ removeTwoNormCol = function(df){
 #' output = normalizeFac(Fac, modes)
 normalizeFac = function(Fac, modes){
   numComponents = ncol(Fac[[1]])
-  numModes = length(Fac)
+  numModes = max(unlist(modes))
   numDatasets = length(modes)
   normalizedFac = list()
 

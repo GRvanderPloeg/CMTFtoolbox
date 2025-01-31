@@ -14,6 +14,7 @@ Imports:
     dplyr,
     foreach,
     ggplot2,
+    ggpubr,
     magrittr,
     methods,
     mize,
@@ -21,11 +22,9 @@ Imports:
     parallel,
     pracma,
     rTensor,
-    sNPLS,
     stats,
     tidyr
 Suggests: 
-    ggpubr,
     knitr,
     plotrix,
     rmarkdown,

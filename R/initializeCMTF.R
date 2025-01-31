@@ -52,17 +52,17 @@ initializeCMTF = function(Z, numComponents, initialization="random", output="Fac
       df = do.call(cbind, eligibleDatasets)
       init[[i]] = svd(df, numComponents)$u
     }
-  } else if(initialization == "npls"){
-
-    for(p in 1:numDatasets){
-      fit = sNPLS::sNPLS(Z$object[[p]]@data, Y, ncomp=numComponents, threshold_j=0, threshold_k=0, scale.X=FALSE, center.X=FALSE, silent=TRUE, method="sNPLS")
-      relevantModes = Z$modes[[p]]
-
-      for(i in 1:length(relevantModes)){
-        init[[relevantModes[i]]] = matrix(fit[[i]], dim(fit[[i]]))
-      }
-    }
-  }
+  } #else if(initialization == "npls"){
+#
+#     for(p in 1:numDatasets){
+#       fit = sNPLS::sNPLS(Z$object[[p]]@data, Y, ncomp=numComponents, threshold_j=0, threshold_k=0, scale.X=FALSE, center.X=FALSE, silent=TRUE, method="sNPLS")
+#       relevantModes = Z$modes[[p]]
+#
+#       for(i in 1:length(relevantModes)){
+#         init[[relevantModes[i]]] = matrix(fit[[i]], dim(fit[[i]]))
+#       }
+#     }
+#   }
 
   if(output=="vect"){
     return(fac_to_vect(init))

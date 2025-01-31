@@ -55,7 +55,7 @@ ncrossreg(
 
 \item{grad_tol}{Absolute tolerence for the l2-norm of the gradient vector.}
 
-\item{nstart}{Number of randomly initialized models to create per number of components (default 1).}
+\item{nstart}{Number of randomly initialized models to create per number of components (default 5).}
 
 \item{numCores}{Number of cores to use (default 1). Setting this to higher than 1 will make the algorithm run in parallel.}
 }

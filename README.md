@@ -28,16 +28,19 @@ implementation was achieved using the S4 Tensor object from `rTensor`
 and the various conjugate gradient approaches from `mize`. Other
 features of the package include:
 
-- `investigateFMS`: Factor Match Score (FMS) based investigation into
-  selecting the appropriate number of components for CMTF and ACMTF.
-- `reinflateFac`: reinflates all data blocks based on a CMTF or ACMTF
-  model for inspection and residual calculation.
-- `reinflateTensor`: reinflates a tensor from three matrices A, B and C.
+- `ncrossreg`: Jack-knife approach for determining the correct number of
+  components for ACMTF-R.
+- `npred`: Prediction of Y for a new sample using an existing ACMTF-R
+  model.
+- `reinflateFac`: reinflates all data blocks based on a CMTF, ACMTF, or
+  ACMTF-R model for inspection and residual calculation.
 - `Jakobsen2025`: A three-block example dataset containing a
   subject-linked longitudinal microbiome infant gut microbiome, mother
   milk microbiome and mother milk metabolomics dataset. More information
   can be found in [Poulsen et al.,
   2022](https://bmjopen.bmj.com/content/12/11/e059552).
+- The option of running the optimization algorithm as a line search
+  (default) or in L-BFGS. See the documentation for more details.
 
 ## Installation
 
@@ -53,9 +56,10 @@ devtools::install_github("GRvanderPloeg/CMTFtoolbox")
 
 Please use the following citation when using this package:
 
-- van der Ploeg, G. R., F. White, Westerhuis, J., Heintz-Buschart, A., &
-  Smilde, A. (2024). ACMTF-R: multi-way data integration of biological
-  variation of interest (manuscript in preparation).
+- van der Ploeg, G. R., White, F. T. G., Westerhuis, J.,
+  Heintz-Buschart, A., & Smilde, A. (2024). ACMTF-R: multi-way data
+  integration of biological variation of interest (manuscript in
+  preparation).
 
 ## Usage
 
