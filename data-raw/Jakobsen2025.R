@@ -10,8 +10,12 @@ taxonomy = read.csv("./data-raw/newTaxonomy_faeces.csv", header=FALSE, sep=" ") 
 sampleInfo = read.csv("./data-raw/faeces_sampleMeta.csv", header=FALSE, sep=" ") %>% as_tibble()
 colnames(sampleInfo) = c("Sample", "RCID", "BMI", "BMI.group", "Days", "Gestational.age", "C.section", "AB.infant", "AB.mother", "Secretor", "Lewis", "subject")
 
+# Read infant anthopometrics
+infant_anthropometrics = read.csv("./data-raw/infant_anthropometrics.csv") %>% as_tibble()
+
 # Make subject metadata
-subjectMeta = sampleInfo %>% select(subject, BMI, BMI.group, C.section, Secretor, Lewis) %>% unique() %>% mutate(subject=as.character(subject)) %>% arrange(subject)
+sampleInfo = sampleInfo %>% left_join(infant_anthropometrics %>% select(RCID, whz.6m))
+subjectMeta = sampleInfo %>% select(subject, BMI, BMI.group, C.section, Secretor, Lewis, whz.6m) %>% unique() %>% mutate(subject=as.character(subject)) %>% arrange(subject)
 
 # Filter taxa to taxa with at least 1 non-zero value
 featureMask = colSums(df) > 0
@@ -19,7 +23,6 @@ df = df[,featureMask]
 taxonomy = taxonomy[featureMask,]
 
 # Filter based on sparsity
-# TODO: filter using group information
 threshold = 0.75
 
 sparsity = colSums(df==0) / nrow(df)
@@ -42,6 +45,10 @@ for(k in 1:K){
   Day = timepoints[k]
   X[,,k] = cbind(df_clr, sampleInfo) %>% as_tibble() %>% mutate(subject=as.character(subject)) %>% filter(Days == Day) %>% select(c(colnames(df_clr),subject)) %>% right_join(subjectMeta) %>% arrange(subject) %>% select(-colnames(subjectMeta)) %>% as.matrix()
 }
+
+# As in Jakobsen2025, remove subject 282 (row 90)
+X = X[-90,,]
+subjectMeta = subjectMeta[-90,,]
 
 # Center and scale
 X_cnt = parafac4microbiome::multiwayCenter(X, mode=1)
@@ -67,7 +74,6 @@ df = df[,featureMask]
 taxonomy = taxonomy[featureMask,]
 
 # Filter based on sparsity
-# TODO: filter using group information
 threshold = 0.85
 
 sparsity = colSums(df==0) / nrow(df)
