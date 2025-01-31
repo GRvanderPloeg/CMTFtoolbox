@@ -8,6 +8,7 @@ cmtf_opt(
   Z,
   numComponents,
   initialization = "random",
+  method = "CG",
   cg_update = "HS",
   line_search = "MT",
   max_iter = 10000,
@@ -27,6 +28,8 @@ cmtf_opt(
 \item{numComponents}{Number of components}
 
 \item{initialization}{Initialization, either "random" (default) or "nvec" for numComponents components of the concatenated data using svd.}
+
+\item{method}{Optimization method to use (default = "CG", the conjugate gradient). See \code{\link[mize:mize]{mize::mize()}} for other options.}
 
 \item{cg_update}{Update method for the conjugate gradient algorithm, see \code{\link[mize:mize]{mize::mize()}} for the options (default="HS", Hestenes-Steifel).}
 

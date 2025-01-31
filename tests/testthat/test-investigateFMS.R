@@ -1,10 +1,15 @@
 test_that("investigateFMS runs without error in acmtf mode", {
   set.seed(123)
-  A = array(rnorm(108*2), c(108, 2))
-  B = array(rnorm(100*2), c(100, 2))
-  C = array(rnorm(10*2), c(10, 2))
-  D = array(rnorm(100*2), c(100, 2))
-  E = array(rnorm(10*2), c(10, 2))
+  I = 10
+  J = 5
+  K = 3
+  L = 8
+  M = 3
+  A = array(rnorm(I*2), c(I, 2))
+  B = array(rnorm(J*2), c(J, 2))
+  C = array(rnorm(K*2), c(K, 2))
+  D = array(rnorm(L*2), c(L, 2))
+  E = array(rnorm(M*2), c(M, 2))
 
   df1 = reinflateTensor(A, B, C)
   df2 = reinflateTensor(A, D, E)
@@ -16,11 +21,16 @@ test_that("investigateFMS runs without error in acmtf mode", {
 
 test_that("investigateFMS runs without error when jack-knifing", {
   set.seed(123)
-  A = array(rnorm(108*2), c(108, 2))
-  B = array(rnorm(100*2), c(100, 2))
-  C = array(rnorm(10*2), c(10, 2))
-  D = array(rnorm(100*2), c(100, 2))
-  E = array(rnorm(10*2), c(10, 2))
+  I = 10
+  J = 5
+  K = 3
+  L = 8
+  M = 3
+  A = array(rnorm(I*2), c(I, 2))
+  B = array(rnorm(J*2), c(J, 2))
+  C = array(rnorm(K*2), c(K, 2))
+  D = array(rnorm(L*2), c(L, 2))
+  E = array(rnorm(M*2), c(M, 2))
 
   df1 = reinflateTensor(A, B, C)
   df2 = reinflateTensor(A, D, E)
@@ -32,11 +42,16 @@ test_that("investigateFMS runs without error when jack-knifing", {
 
 test_that("investigateFMS runs without error in cmtf mode", {
   set.seed(123)
-  A = array(rnorm(108*2), c(108, 2))
-  B = array(rnorm(100*2), c(100, 2))
-  C = array(rnorm(10*2), c(10, 2))
-  D = array(rnorm(100*2), c(100, 2))
-  E = array(rnorm(10*2), c(10, 2))
+  I = 10
+  J = 5
+  K = 3
+  L = 8
+  M = 3
+  A = array(rnorm(I*2), c(I, 2))
+  B = array(rnorm(J*2), c(J, 2))
+  C = array(rnorm(K*2), c(K, 2))
+  D = array(rnorm(L*2), c(L, 2))
+  E = array(rnorm(M*2), c(M, 2))
 
   df1 = reinflateTensor(A, B, C)
   df2 = reinflateTensor(A, D, E)
@@ -48,11 +63,16 @@ test_that("investigateFMS runs without error in cmtf mode", {
 
 test_that("specifying the wrong type of model results in an error", {
   set.seed(123)
-  A = array(rnorm(108*2), c(108, 2))
-  B = array(rnorm(100*2), c(100, 2))
-  C = array(rnorm(10*2), c(10, 2))
-  D = array(rnorm(100*2), c(100, 2))
-  E = array(rnorm(10*2), c(10, 2))
+  I = 10
+  J = 5
+  K = 3
+  L = 8
+  M = 3
+  A = array(rnorm(I*2), c(I, 2))
+  B = array(rnorm(J*2), c(J, 2))
+  C = array(rnorm(K*2), c(K, 2))
+  D = array(rnorm(L*2), c(L, 2))
+  E = array(rnorm(M*2), c(M, 2))
 
   df1 = reinflateTensor(A, B, C)
   df2 = reinflateTensor(A, D, E)
@@ -66,11 +86,16 @@ test_that("running in parallel works", {
   skip_on_cran()
 
   set.seed(123)
-  A = array(rnorm(108*2), c(108, 2))
-  B = array(rnorm(100*2), c(100, 2))
-  C = array(rnorm(10*2), c(10, 2))
-  D = array(rnorm(100*2), c(100, 2))
-  E = array(rnorm(10*2), c(10, 2))
+  I = 10
+  J = 5
+  K = 3
+  L = 8
+  M = 3
+  A = array(rnorm(I*2), c(I, 2))
+  B = array(rnorm(J*2), c(J, 2))
+  C = array(rnorm(K*2), c(K, 2))
+  D = array(rnorm(L*2), c(L, 2))
+  E = array(rnorm(M*2), c(M, 2))
 
   df1 = reinflateTensor(A, B, C)
   df2 = reinflateTensor(A, D, E)

@@ -30,7 +30,7 @@
 #'
 #' # specific setting to reduce runtime for CRAN
 #' result = investigateFMS(datasets, modes, 1, model="acmtf", numFolds=2, rel_tol=1e-4, abs_tol=1e-4)
-investigateFMS = function(datasets, modes, sharedMode, model="acmtf", minNumComponents=1, maxNumComponents=3, numFolds=10, jackKnife=FALSE, numCores=1, max_iter=10000, max_fn=100000, rel_tol=1e-8, abs_tol=1e-8){
+investigateFMS = function(datasets, modes, sharedMode, model="acmtf", minNumComponents=1, maxNumComponents=3, numFolds=10, jackKnife=FALSE, numCores=1, method="CG", max_iter=10000, max_fn=100000, rel_tol=1e-8, abs_tol=1e-8){
 
   numDatasets = length(datasets)
   numModes = max(unlist(modes))
@@ -86,13 +86,13 @@ investigateFMS = function(datasets, modes, sharedMode, model="acmtf", minNumComp
         cl = parallel::makeCluster(numCores)
         doParallel::registerDoParallel(cl)
         models = foreach::foreach(n=1:numFolds) %dopar% {
-          result = acmtf_opt(allZ[[n]], numComponents, initialization="nvec", nstart=1, numCores=1, max_iter=max_iter, max_fn=max_fn, rel_tol=rel_tol, abs_tol=abs_tol)
+          result = acmtf_opt(allZ[[n]], numComponents, initialization="nvec", nstart=1, numCores=1, method=method, max_iter=max_iter, max_fn=max_fn, rel_tol=rel_tol, abs_tol=abs_tol)
         }
         parallel::stopCluster(cl)
       } else{
         models = list()
         for(n in 1:numFolds){
-          models[[n]] = acmtf_opt(allZ[[n]], numComponents, initialization="nvec", nstart=1, numCores=1, max_iter=max_iter, max_fn=max_fn, rel_tol=rel_tol, abs_tol=abs_tol)
+          models[[n]] = acmtf_opt(allZ[[n]], numComponents, initialization="nvec", nstart=1, numCores=1, method=method, max_iter=max_iter, max_fn=max_fn, rel_tol=rel_tol, abs_tol=abs_tol)
         }
       }
     } else if(model == "cmtf"){
@@ -100,13 +100,13 @@ investigateFMS = function(datasets, modes, sharedMode, model="acmtf", minNumComp
         cl = parallel::makeCluster(numCores)
         doParallel::registerDoParallel(cl)
         models = foreach::foreach(n=1:numFolds) %dopar% {
-          result = cmtf_opt(allZ[[n]], numComponents, initialization="nvec", nstart=1, numCores=1, max_iter=max_iter, max_fn=max_fn, rel_tol=rel_tol, abs_tol=abs_tol)
+          result = cmtf_opt(allZ[[n]], numComponents, initialization="nvec", nstart=1, numCores=1, method=method, max_iter=max_iter, max_fn=max_fn, rel_tol=rel_tol, abs_tol=abs_tol)
         }
         parallel::stopCluster(cl)
       } else{
         models = list()
         for(n in 1:numFolds){
-          models[[n]] = cmtf_opt(allZ[[n]], numComponents, initialization="nvec", nstart=1, numCores=1, max_iter=max_iter, max_fn=max_fn, rel_tol=rel_tol, abs_tol=abs_tol)
+          models[[n]] = cmtf_opt(allZ[[n]], numComponents, initialization="nvec", nstart=1, numCores=1, method=method, max_iter=max_iter, max_fn=max_fn, rel_tol=rel_tol, abs_tol=abs_tol)
         }
       }
     } else{

@@ -1,10 +1,15 @@
 test_that("the function throws no errors with one new sample and a one component model", {
   set.seed(123)
-  A = array(rnorm(108*2), c(108, 2))
-  B = array(rnorm(100*2), c(100, 2))
-  C = array(rnorm(10*2), c(10, 2))
-  D = array(rnorm(100*2), c(100, 2))
-  E = array(rnorm(10*2), c(10, 2))
+  I = 10
+  J = 5
+  K = 3
+  L = 8
+  M = 3
+  A = array(rnorm(I*2), c(I, 2))
+  B = array(rnorm(J*2), c(J, 2))
+  C = array(rnorm(K*2), c(K, 2))
+  D = array(rnorm(L*2), c(L, 2))
+  E = array(rnorm(M*2), c(M, 2))
 
   df1 = reinflateTensor(A, B, C)
   df2 = reinflateTensor(A, D, E)
@@ -28,11 +33,16 @@ test_that("the function throws no errors with one new sample and a one component
 
 test_that("the function throws no errors with one new sample and a two component model", {
   set.seed(123)
-  A = array(rnorm(108*2), c(108, 2))
-  B = array(rnorm(100*2), c(100, 2))
-  C = array(rnorm(10*2), c(10, 2))
-  D = array(rnorm(100*2), c(100, 2))
-  E = array(rnorm(10*2), c(10, 2))
+  I = 10
+  J = 5
+  K = 3
+  L = 8
+  M = 3
+  A = array(rnorm(I*2), c(I, 2))
+  B = array(rnorm(J*2), c(J, 2))
+  C = array(rnorm(K*2), c(K, 2))
+  D = array(rnorm(L*2), c(L, 2))
+  E = array(rnorm(M*2), c(M, 2))
 
   df1 = reinflateTensor(A, B, C)
   df2 = reinflateTensor(A, D, E)
@@ -56,11 +66,16 @@ test_that("the function throws no errors with one new sample and a two component
 
 test_that("the function throws no errors with several new samples", {
   set.seed(123)
-  A = array(rnorm(108*2), c(108, 2))
-  B = array(rnorm(100*2), c(100, 2))
-  C = array(rnorm(10*2), c(10, 2))
-  D = array(rnorm(100*2), c(100, 2))
-  E = array(rnorm(10*2), c(10, 2))
+  I = 10
+  J = 5
+  K = 3
+  L = 8
+  M = 3
+  A = array(rnorm(I*2), c(I, 2))
+  B = array(rnorm(J*2), c(J, 2))
+  C = array(rnorm(K*2), c(K, 2))
+  D = array(rnorm(L*2), c(L, 2))
+  E = array(rnorm(M*2), c(M, 2))
 
   df1 = reinflateTensor(A, B, C)
   df2 = reinflateTensor(A, D, E)
@@ -84,11 +99,16 @@ test_that("the function throws no errors with several new samples", {
 
 test_that("vectX must be the same size as vectZ", {
   set.seed(123)
-  A = array(rnorm(108*2), c(108, 2))
-  B = array(rnorm(100*2), c(100, 2))
-  C = array(rnorm(10*2), c(10, 2))
-  D = array(rnorm(100*2), c(100, 2))
-  E = array(rnorm(10*2), c(10, 2))
+  I = 10
+  J = 5
+  K = 3
+  L = 8
+  M = 3
+  A = array(rnorm(I*2), c(I, 2))
+  B = array(rnorm(J*2), c(J, 2))
+  C = array(rnorm(K*2), c(K, 2))
+  D = array(rnorm(L*2), c(L, 2))
+  E = array(rnorm(M*2), c(M, 2))
 
   df1 = reinflateTensor(A, B, C)
   df2 = reinflateTensor(A, D, E)
@@ -99,7 +119,7 @@ test_that("vectX must be the same size as vectZ", {
 
   # Remove a sample and define
   i = 1
-  Xtest = lapply(Z$object, function(x){x@data[i,1:10,]})
+  Xtest = lapply(Z$object, function(x){x@data[i,1:3,]})
   Ytest = Y[i]
 
   Xtrain = lapply(Z$object, function(x){x@data[-i,,]})
@@ -112,12 +132,16 @@ test_that("vectX must be the same size as vectZ", {
 
 test_that("missing values in Xnew are ignored for the prediction", {
   set.seed(123)
-  A = array(rnorm(108*2), c(108, 2))
-  B = array(rnorm(100*2), c(100, 2))
-  C = array(rnorm(10*2), c(10, 2))
-  D = array(rnorm(100*2), c(100, 2))
-  E = array(rnorm(10*2), c(10, 2))
-
+  I = 10
+  J = 5
+  K = 3
+  L = 8
+  M = 3
+  A = array(rnorm(I*2), c(I, 2))
+  B = array(rnorm(J*2), c(J, 2))
+  C = array(rnorm(K*2), c(K, 2))
+  D = array(rnorm(L*2), c(L, 2))
+  E = array(rnorm(M*2), c(M, 2))
   df1 = reinflateTensor(A, B, C)
   df2 = reinflateTensor(A, D, E)
   datasets = list(df1, df2)
@@ -128,7 +152,7 @@ test_that("missing values in Xnew are ignored for the prediction", {
   # Remove a sample and define
   i = 1
   Xtest = lapply(Z$object, function(x){x@data[i,,]})
-  Xtest[[1]][1:10,] = NA
+  Xtest[[1]][1:3,] = NA
   Ytest = Y[i]
 
   Xtrain = lapply(Z$object, function(x){x@data[-i,,]})

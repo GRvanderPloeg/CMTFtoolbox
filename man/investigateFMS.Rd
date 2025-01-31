@@ -14,6 +14,7 @@ investigateFMS(
   numFolds = 10,
   jackKnife = FALSE,
   numCores = 1,
+  method = "CG",
   max_iter = 10000,
   max_fn = 1e+05,
   rel_tol = 1e-08,
@@ -38,6 +39,8 @@ investigateFMS(
 \item{jackKnife}{Jack-knife samples instead of removing multiple samples per fold (default FALSE).}
 
 \item{numCores}{Number of cores to use (default 1). A number higher than 1 will run the process in parallel.}
+
+\item{method}{Optimization method to use (default = "CG", the conjugate gradient). See \code{\link[mize:mize]{mize::mize()}} for other options.}
 
 \item{max_iter}{Maximum number of iterations.}
 

@@ -1,10 +1,15 @@
 test_that("the function throws no errors with normal use", {
   set.seed(123)
-  A = array(rnorm(25*2), c(25, 2))
-  B = array(rnorm(100*2), c(100, 2))
-  C = array(rnorm(10*2), c(10, 2))
-  D = array(rnorm(100*2), c(100, 2))
-  E = array(rnorm(10*2), c(10, 2))
+  I = 10
+  J = 5
+  K = 3
+  L = 8
+  M = 3
+  A = array(rnorm(I*2), c(I, 2))
+  B = array(rnorm(J*2), c(J, 2))
+  C = array(rnorm(K*2), c(K, 2))
+  D = array(rnorm(L*2), c(L, 2))
+  E = array(rnorm(M*2), c(M, 2))
 
   df1 = reinflateTensor(A, B, C)
   df2 = reinflateTensor(A, D, E)
@@ -20,11 +25,16 @@ test_that("running in parallel works", {
   skip_on_cran()
 
   set.seed(123)
-  A = array(rnorm(25*2), c(25, 2))
-  B = array(rnorm(100*2), c(100, 2))
-  C = array(rnorm(10*2), c(10, 2))
-  D = array(rnorm(100*2), c(100, 2))
-  E = array(rnorm(10*2), c(10, 2))
+  I = 10
+  J = 5
+  K = 3
+  L = 8
+  M = 3
+  A = array(rnorm(I*2), c(I, 2))
+  B = array(rnorm(J*2), c(J, 2))
+  C = array(rnorm(K*2), c(K, 2))
+  D = array(rnorm(L*2), c(L, 2))
+  E = array(rnorm(M*2), c(M, 2))
 
   df1 = reinflateTensor(A, B, C)
   df2 = reinflateTensor(A, D, E)

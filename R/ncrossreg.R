@@ -25,7 +25,7 @@
 #'
 #' # Uses poor settings to make the example work.
 #' plot = ncrossreg(Z, Y, maxNumComponents=2, max_iter=2, nstart=2)
-ncrossreg = function(Z, Y, maxNumComponents=5, alpha=1, beta=rep(1e-3, length(Z$object)), epsilon=1e-8, pi=0.5, cg_update="HS", line_search="MT", max_iter=10000, max_fn=10000, abs_tol=1e-10, rel_tol=1e-10, grad_tol=1e-10, nstart=5, numCores=1){
+ncrossreg = function(Z, Y, maxNumComponents=5, alpha=1, beta=rep(1e-3, length(Z$object)), epsilon=1e-8, pi=0.5, method="CG", cg_update="HS", line_search="MT", max_iter=10000, max_fn=10000, abs_tol=1e-10, rel_tol=1e-10, grad_tol=1e-10, nstart=5, numCores=1){
 
   numBlocks = length(Z$object)
   numFolds = Z$sizes[1]

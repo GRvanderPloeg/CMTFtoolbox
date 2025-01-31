@@ -24,7 +24,7 @@
 #'
 #' # specific setting to reduce runtime for CRAN
 #' model = acmtf_opt(Z, 1, rel_tol=1e-5, abs_tol=1e-5)
-acmtf_opt = function(Z, numComponents, initialization="random", alpha=1, beta=rep(1e-3, length(Z$object)), epsilon=1e-8, cg_update="HS", line_search="MT", max_iter=10000, max_fn=10000, abs_tol=1e-10, rel_tol=1e-10, grad_tol=1e-10, nstart=1, numCores=1, sortComponents=TRUE, allOutput=FALSE){
+acmtf_opt = function(Z, numComponents, initialization="random", alpha=1, beta=rep(1e-3, length(Z$object)), epsilon=1e-8, method="CG", cg_update="HS", line_search="MT", max_iter=10000, max_fn=10000, abs_tol=1e-10, rel_tol=1e-10, grad_tol=1e-10, nstart=1, numCores=1, sortComponents=TRUE, allOutput=FALSE){
   numModes = max(unlist(Z$modes))
   numDatasets = length(Z$object)
 
@@ -40,17 +40,17 @@ acmtf_opt = function(Z, numComponents, initialization="random", alpha=1, beta=re
     doParallel::registerDoParallel(cl)
 
     models = foreach::foreach(i=1:nstart) %dopar% {
-      fg = list("fn"=function(x){return(CMTFtoolbox::acmtf_fun(x,Z,alpha,beta,epsilon))}, "gr"=function(x){return(CMTFtoolbox::acmtf_gradient(x,Z,alpha,beta,epsilon))})
+      fg = list("fn"=function(x){return(CMTFtoolbox::acmtf_fun(x,Z,alpha,beta,epsilon))}, "gr"=function(x){return(CMTFtoolbox::acmtf_gradient(x,Z,alpha,beta,epsilon))}, "fg"=function(x){return(CMTFtoolbox::acmtf_fg(x,Z,alpha,beta,epsilon))})
       print(dim(Z$object[[1]])) # somehow this line fixes a bug where parallel gives an error about "dims cannot be of length 0"
-      model = mize::mize(par=inits[[i]], fg=fg, max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search, store_progress=TRUE)
+      model = mize::mize(par=inits[[i]], fg=fg, max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method=method, cg_update=cg_update, line_search=line_search, store_progress=TRUE)
     }
     parallel::stopCluster(cl)
 
   } else{
     models = list()
     for(i in 1:nstart){
-      fg = list("fn"=function(x){return(CMTFtoolbox::acmtf_fun(x,Z,alpha,beta,epsilon))}, "gr"=function(x){return(CMTFtoolbox::acmtf_gradient(x,Z,alpha,beta,epsilon))})
-      models[[i]] = mize::mize(par=inits[[i]], fg=fg, max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method="CG", cg_update=cg_update, line_search=line_search, store_progress=TRUE)
+      fg = list("fn"=function(x){return(CMTFtoolbox::acmtf_fun(x,Z,alpha,beta,epsilon))}, "gr"=function(x){return(CMTFtoolbox::acmtf_gradient(x,Z,alpha,beta,epsilon))}, "fg"=function(x){return(CMTFtoolbox::acmtf_fg(x,Z,alpha,beta,epsilon))})
+      models[[i]] = mize::mize(par=inits[[i]], fg=fg, max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method=method, cg_update=cg_update, line_search=line_search, store_progress=TRUE)
     }
   }
 

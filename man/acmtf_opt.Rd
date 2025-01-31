@@ -11,6 +11,7 @@ acmtf_opt(
   alpha = 1,
   beta = rep(0.001, length(Z$object)),
   epsilon = 1e-08,
+  method = "CG",
   cg_update = "HS",
   line_search = "MT",
   max_iter = 10000,
@@ -36,6 +37,8 @@ acmtf_opt(
 \item{beta}{Vector of penalty values for each dataset, penalizing the lambda terms (default 1e-3).}
 
 \item{epsilon}{Scalar value to make it possible to compute the partial derivatives of lambda (default 1e-8).}
+
+\item{method}{Optimization method to use (default = "CG", the conjugate gradient). See \code{\link[mize:mize]{mize::mize()}} for other options.}
 
 \item{cg_update}{Update method for the conjugate gradient algorithm, see \code{\link[mize:mize]{mize::mize()}} for the options (default="HS", Hestenes-Steifel).}
 
