@@ -127,7 +127,7 @@
 
 
 <dt id="arg-nstart">nstart<a class="anchor" aria-label="anchor" href="#arg-nstart"></a></dt>
-<dd><p>Number of randomly initialized models to create per number of components (default 1).</p></dd>
+<dd><p>Number of randomly initialized models to create per number of components (default 5).</p></dd>
 
 
 <dt id="arg-numcores">numCores<a class="anchor" aria-label="anchor" href="#arg-numcores"></a></dt>
@@ -157,6 +157,11 @@
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Uses poor settings to make the example work.</span></span></span>
 <span class="r-in"><span><span class="va">plot</span> <span class="op">=</span> <span class="fu">ncrossreg</span><span class="op">(</span><span class="va">Z</span>, <span class="va">Y</span>, maxNumComponents<span class="op">=</span><span class="fl">2</span>, max_iter<span class="op">=</span><span class="fl">2</span>, nstart<span class="op">=</span><span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>The `x` argument of `as_tibble.matrix()` must have unique column names if</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> `.name_repair` is omitted as of tibble 2.0.0.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Using compatibility `.name_repair`.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> The deprecated feature was likely used in the <span style="color: #0000BB;">CMTFtoolbox</span> package.</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span>   Please report the issue to the authors.</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
