@@ -5,7 +5,7 @@
 #' @param nstart Number of randomly initialized models to create per number of components (default 5).
 #' @param numCores Number of cores to use (default 1). Setting this to higher than 1 will make the algorithm run in parallel.
 #'
-#' @return A plot showcasing the variance explained in the X blocks and Y as well as the RMSE of Y.
+#' @return A list object containing: RMSE and varExp data
 #' @export
 #'
 #' @examples
@@ -25,47 +25,149 @@
 #'
 #' # Uses poor settings to make the example work.
 #' plot = ncrossreg(Z, Y, maxNumComponents=2, max_iter=2, nstart=2)
-ncrossreg = function(Z, Y, maxNumComponents=5, alpha=1, beta=rep(1e-3, length(Z$object)), epsilon=1e-8, pi=0.5, method="CG", cg_update="HS", line_search="MT", max_iter=10000, max_fn=10000, abs_tol=1e-10, rel_tol=1e-10, grad_tol=1e-10, nstart=5, numCores=1){
+ncrossreg = function(Z, Y, maxNumComponents = 5,
+                     alpha = 1,
+                     beta = rep(1e-3, length(Z$object)),
+                     epsilon = 1e-8,
+                     pi = 0.5,
+                     method = "CG",
+                     cg_update = "HS",
+                     line_search = "MT",
+                     max_iter = 10000,
+                     max_fn = 10000,
+                     abs_tol = 1e-10,
+                     rel_tol = 1e-10,
+                     grad_tol = 1e-10,
+                     nstart = 5,
+                     numCores = 1) {
 
   numBlocks = length(Z$object)
-  numFolds = Z$sizes[1]
+  numFolds  = Z$sizes[1]
 
-  # Run jack-knifed models to determine RMSE of Y
+  #### 1. Jack-knife predictions ####
+  # Create grid of settings (each row gives a number of components and a fold index)
+  settings = expand.grid(numComponents = 1:maxNumComponents,
+                          removeIndex   = seq_len(numFolds))
+  # Repeat each setting nstart times (so that each setting is run nstart times)
+  settings = settings[rep(1:nrow(settings), each = nstart), ]
+  rownames(settings) = NULL  # clean up row names
 
-  # Define settings to run in parallel
-  settings = expand.grid(f = 1:maxNumComponents, i = seq_len(numFolds))
-  colnames(settings) = c("numComponents", "removeIndex")
+  if (numCores > 1) {
+    # Use parallelization via foreach if more than one core is specified:
+    cl = parallel::makeCluster(numCores)
+    doParallel::registerDoParallel(cl)
 
-  # Pre-allocate memory
-  Ypred = rep(NA, nrow(settings))
-  Yreal = rep(NA, nrow(settings))
+    results = foreach::foreach(i = 1:nrow(settings),
+                                .combine = rbind,
+                                .packages = c("CMTFtoolbox")) %dopar% {
+                                  # Get the current settings
+                                  numComponents = as.numeric(settings$numComponents[i])
+                                  removeIndex   = as.numeric(settings$removeIndex[i])
 
-  for(i in 1:nrow(settings)){
-    numComponents = settings[i,1]
-    removeIndex = settings[i,2]
+                                  # Prepare jack-knifed training and test sets
+                                  Xtrain = lapply(Z$object, function(x) { x@data[-removeIndex,,] })
+                                  Ztrain = setupCMTFdata(Xtrain, Z$modes)
+                                  Ytrain = Y[-removeIndex]
+                                  Xtest  = lapply(Z$object, function(x) { x@data[removeIndex,,] })
 
-    Xtrain = lapply(Z$object, function(x){x@data[-removeIndex,,]})
-    Ztrain = setupCMTFdata(Xtrain, Z$modes)
-    Ytrain = Y[-removeIndex]
-    Xtest = lapply(Z$object, function(x){x@data[removeIndex,,]})
+                                  # Run ACMTF (with nstart = 1)
+                                  model = CMTFtoolbox::acmtfr_opt(Ztrain, Ytrain,
+                                                                   numComponents = numComponents,
+                                                                   alpha         = alpha,
+                                                                   beta          = beta,
+                                                                   epsilon       = epsilon,
+                                                                   pi            = pi,
+                                                                   method        = method,
+                                                                   cg_update     = cg_update,
+                                                                   line_search   = line_search,
+                                                                   max_iter      = max_iter,
+                                                                   max_fn        = max_fn,
+                                                                   abs_tol       = abs_tol,
+                                                                   rel_tol       = rel_tol,
+                                                                   grad_tol      = grad_tol,
+                                                                   nstart        = 1,        # changed here
+                                                                   numCores      = numCores)
+                                  # Compute prediction for the held-out index:
+                                  pred = npred(model, Xtest, Ztrain)
+                                  real = Y[removeIndex]
 
-    model = CMTFtoolbox::acmtfr_opt(Ztrain, Ytrain, numComponents=numComponents, alpha=alpha, beta=beta, epsilon=epsilon, pi=pi, method=method, cg_update=cg_update, line_search=line_search, max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, nstart=nstart, numCores=numCores)
-    Ypred[i] = npred(model, Xtest, Ztrain)
-    Yreal[i] = Y[removeIndex]
+                                  c(Yreal = real, Ypred = pred)
+                                }
+    parallel::stopCluster(cl)
+  } else {
+    # Use a simple for-loop when numCores = 1:
+    results = matrix(NA, nrow = nrow(settings), ncol = 2)
+    colnames(results) = c("Yreal", "Ypred")
+
+    for(i in 1:nrow(settings)){
+      numComponents = as.numeric(settings$numComponents[i])
+      removeIndex   = as.numeric(settings$removeIndex[i])
+
+      # Prepare jack-knifed training and test sets
+      Xtrain = lapply(Z$object, function(x) { x@data[-removeIndex,,] })
+      Ztrain = setupCMTFdata(Xtrain, Z$modes)
+      Ytrain = Y[-removeIndex]
+      Xtest  = lapply(Z$object, function(x) { x@data[removeIndex,,] })
+
+      # Run ACMTF (with nstart = 1)
+      model = CMTFtoolbox::acmtfr_opt(Ztrain, Ytrain,
+                                       numComponents = numComponents,
+                                       alpha         = alpha,
+                                       beta          = beta,
+                                       epsilon       = epsilon,
+                                       pi            = pi,
+                                       method        = method,
+                                       cg_update     = cg_update,
+                                       line_search   = line_search,
+                                       max_iter      = max_iter,
+                                       max_fn        = max_fn,
+                                       abs_tol       = abs_tol,
+                                       rel_tol       = rel_tol,
+                                       grad_tol      = grad_tol,
+                                       nstart        = 1,
+                                       numCores      = numCores)
+      # Compute prediction for the held-out index:
+      results[i, ] = c(Yreal = Y[removeIndex], Ypred = npred(model, Xtest, Ztrain))
+    }
   }
 
-  varExpX = matrix(NA, nrow=maxNumComponents, ncol=numBlocks)
-  varExpY = rep(NA, nrow=maxNumComponents)
+  # Extract results from the jack-knifing:
+  Yreal = results[, "Yreal"]
+  Ypred = results[, "Ypred"]
+
+  #### 2. Variance-explained for X and Y ####
+  varExpX = matrix(NA, nrow = maxNumComponents, ncol = numBlocks)
+  varExpY = rep(NA, maxNumComponents)
+
   for(i in 1:maxNumComponents){
-    model = CMTFtoolbox::acmtfr_opt(Z, Y, numComponents=numComponents, alpha=alpha, beta=beta, epsilon=epsilon, pi=pi, method=method, cg_update=cg_update, line_search=line_search, max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, nstart=nstart, numCores=numCores)
+    # Here i is used as the number of components
+    model = CMTFtoolbox::acmtfr_opt(Z, Y,
+                                     numComponents = i,    # loop counter
+                                     alpha         = alpha,
+                                     beta          = beta,
+                                     epsilon       = epsilon,
+                                     pi            = pi,
+                                     method        = method,
+                                     cg_update     = cg_update,
+                                     line_search   = line_search,
+                                     max_iter      = max_iter,
+                                     max_fn        = max_fn,
+                                     abs_tol       = abs_tol,
+                                     rel_tol       = rel_tol,
+                                     grad_tol      = grad_tol,
+                                     nstart        = nstart,
+                                     numCores      = numCores)
     varExpX[i,] = model$varExp
-    varExpY[i] = model$varExpY
+    varExpY[i]  = model$varExpY
   }
 
-  # Prepare plot data
-  varExpData = cbind(1:maxNumComponents, varExpX, varExpY) %>%
+  #### 3. Prepare data ####
+  # Assign unique column names while binding columns
+  colnames(varExpX) = paste0("X", 1:numBlocks)
+  varExpData = cbind(numComponents = 1:maxNumComponents,
+                     varExpX,
+                     Y = varExpY) %>%
     dplyr::as_tibble()
-  colnames(varExpData) = c("numComponents", paste0("X", 1:numBlocks), "Y")
 
   RMSEdata = cbind(settings, Yreal, Ypred) %>%
     dplyr::as_tibble() %>%
@@ -73,25 +175,8 @@ ncrossreg = function(Z, Y, maxNumComponents=5, alpha=1, beta=rep(1e-3, length(Z$
     dplyr::group_by(numComponents) %>%
     dplyr::summarise(RMSE = sqrt(sum(RMSE)))
 
-  # Prepare plot output
-  a = varExpData %>%
-    tidyr::pivot_longer(-numComponents) %>%
-    ggplot2::ggplot(ggplot2::aes(x = numComponents,y = value, col = as.factor(name))) +
-    ggplot2::geom_path() +
-    ggplot2::geom_point() +
-    ggplot2::labs(x="Number of components", y="Variance explained (%)", color="Block") +
-    ggplot2::scale_x_continuous(breaks=varExpData$numComponents)
-
-  b = RMSEdata %>%
-    ggplot2::ggplot(ggplot2::aes(x = numComponents, y = RMSE)) +
-    ggplot2::geom_path() +
-    ggplot2::geom_point() +
-    ggplot2::labs(x = "Number of components", y = "RMSE") +
-    ggplot2::scale_x_continuous(breaks = RMSEdata$numComponents)
-
-  plot = ggpubr::ggarrange(a,b)
-  plots = list(plot, a, b)
-  return(list("settings"=settings, "varExp"=varExpData, "RMSE"=RMSEdata, "plots"=plots))
+  return(list("varExp"   = varExpData,
+              "RMSE"     = RMSEdata))
 }
 
 # Ugly solution to namespace issues caused by dplyr

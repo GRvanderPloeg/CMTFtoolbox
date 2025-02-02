@@ -60,7 +60,7 @@ ncrossreg(
 \item{numCores}{Number of cores to use (default 1). Setting this to higher than 1 will make the algorithm run in parallel.}
 }
 \value{
-A plot showcasing the variance explained in the X blocks and Y as well as the RMSE of Y.
+A list object containing: RMSE and varExp data
 }
 \description{
 Cross-validation of ACMTF-R by jack-knifing
