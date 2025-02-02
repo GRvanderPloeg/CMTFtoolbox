@@ -2,7 +2,7 @@
 % Please edit documentation in R/ncrossreg.R
 \name{ncrossreg}
 \alias{ncrossreg}
-\title{Cross-validation of ACMTF-R by jack-knifing}
+\title{Cross-validation of ACMTF-R by classical K-fold CV (or jackknife) with best-model selection per fold}
 \usage{
 ncrossreg(
   Z,
@@ -12,6 +12,10 @@ ncrossreg(
   beta = rep(0.001, length(Z$object)),
   epsilon = 1e-08,
   pi = 0.5,
+  center = TRUE,
+  centerY = TRUE,
+  scale = TRUE,
+  normalize = TRUE,
   method = "CG",
   cg_update = "HS",
   line_search = "MT",
@@ -21,7 +25,8 @@ ncrossreg(
   rel_tol = 1e-10,
   grad_tol = 1e-10,
   nstart = 5,
-  numCores = 1
+  numCores = 1,
+  cvFolds = NULL
 )
 }
 \arguments{
@@ -39,6 +44,14 @@ ncrossreg(
 
 \item{pi}{Pi value of the loss function as specified by Van der Ploeg et al., 2025.}
 
+\item{center}{Center the data per fold Does not apply to Y.}
+
+\item{centerY}{Center Y per fold}
+
+\item{scale}{Scale the data per partition. Does not apply to Y.}
+
+\item{normalize}{Block scale the datasets to norm 1 per fold.}
+
 \item{method}{Optimization method to use (default = "CG", the conjugate gradient). See \code{\link[mize:mize]{mize::mize()}} for other options.}
 
 \item{cg_update}{Update method for the conjugate gradient algorithm, see \code{\link[mize:mize]{mize::mize()}} for the options (default="HS", Hestenes-Steifel).}
@@ -55,31 +68,54 @@ ncrossreg(
 
 \item{grad_tol}{Absolute tolerence for the l2-norm of the gradient vector.}
 
-\item{nstart}{Number of randomly initialized models to create per number of components (default 5).}
+\item{nstart}{Number of replicate initializations per CV fold (default 5).}
 
-\item{numCores}{Number of cores to use (default 1). Setting this to higher than 1 will make the algorithm run in parallel.}
+\item{numCores}{Number of cores to use for the replicate fits (default 1). Each replicate model is
+fit with \code{numCores = 1} (to avoid nested parallelism) but the replicates are run in parallel.}
+
+\item{cvFolds}{Number of folds to use in the cross-validation. For example, if \code{cvFolds}
+is 5, then the subjects are deterministically partitioned into 5 groups
+(each CV iteration uses 4/5 for training and 1/5 for testing).
+If \code{cvFolds} is \code{NULL} (the default) or is greater than or equal to the number of subjects,
+then leave–one–out (jackknife) CV is performed.}
 }
 \value{
-A list object containing: RMSE and varExp data
+A list with two elements:
+- \strong{varExp}: a tibble with the variance–explained (for X and Y) per number of components.
+- \strong{RMSE}: a tibble with the RMSE (computed over the unified CV prediction vector) per number of components.
 }
 \description{
-Cross-validation of ACMTF-R by jack-knifing
+This function runs ACMTF-R with cross-validation. If the number of folds
+(\code{cvFolds}) is provided and is less than the number of subjects (i.e. the first
+dimension given in \code{Z$sizes[1]}), then a classical, deterministic K–fold partition
+is used: the subjects are split in order into \code{cvFolds} groups. For each fold the
+training set consists of the other folds and the test set is the current fold.
+If \code{cvFolds} is \code{NULL} (the default) or is greater than or equal to the number of subjects,
+then leave–one–out (jackknife) CV is performed.
+}
+\details{
+For each fold and for each number of components, \emph{nstart} models are fitted—each
+with a single initialization (i.e. using \code{nstart = 1} and \code{numCores = 1} in \code{acmtfr_opt}).
+The large parallel loop iterates over all combinations of (numComponents, fold, replicate).
+After the loop, for each (numComponents, fold) the best replicate is selected (using \code{model$f})
+and used to predict on the test set. The predictions for all folds are then combined into
+a unified prediction vector for RMSE calculation.
 }
 \examples{
 set.seed(123)
-A = array(rnorm(25*2), c(25, 2))
-B = array(rnorm(100*2), c(100, 2))
-C = array(rnorm(10*2), c(10, 2))
-D = array(rnorm(100*2), c(100, 2))
-E = array(rnorm(10*2), c(10, 2))
+A = array(rnorm(25 * 2), c(25, 2))
+B = array(rnorm(100 * 2), c(100, 2))
+C = array(rnorm(10 * 2), c(10, 2))
+D = array(rnorm(100 * 2), c(100, 2))
+E = array(rnorm(10 * 2), c(10, 2))
 
 df1 = reinflateTensor(A, B, C)
 df2 = reinflateTensor(A, D, E)
 datasets = list(df1, df2)
-modes = list(c(1,2,3), c(1,4,5))
+modes = list(c(1, 2, 3), c(1, 4, 5))
 Z = setupCMTFdata(datasets, modes)
-Y = matrix(A[,1])
+Y = matrix(A[, 1])
 
-# Uses poor settings to make the example work.
-plot = ncrossreg(Z, Y, maxNumComponents=2, max_iter=2, nstart=2)
+# For classical 5-fold CV (deterministic splits) with best-model selection:
+result = ncrossreg(Z, Y, maxNumComponents = 2, max_iter = 2, nstart = 2, cvFolds = 5)
 }
