@@ -80,7 +80,7 @@ npred = function(model, newX, Z, sharedMode=1){
     vectX_small = vectX[mask,]
 
     # Project vectX onto the latent space to obtain scores per component
-    Zplus = pracma::pinv(as.matrix(vectZ_small))
+    Zplus = safePseudoInverse(as.matrix(vectZ_small))
     newA = Zplus %*% vectX_small
 
     # Predict Y

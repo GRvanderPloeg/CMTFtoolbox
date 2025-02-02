@@ -53,7 +53,7 @@ acmtfr_fg = function(x, Z, Y,
 
   # Calculate Y and coefs
   A = Fac[[1]]
-  coefs = solve(t(A) %*% A) %*% t(A) %*% Y
+  coefs = safeSolve(t(A) %*% A) %*% t(A) %*% Y
   Yhat = A %*% coefs
   Yres = Y - Yhat
 
@@ -133,7 +133,7 @@ acmtfr_fg = function(x, Z, Y,
 
   # Gradient of A related to Y
   A = Fac[[1]]
-  coefs = solve(t(A) %*% A) %*% t(A) %*% Y
+  coefs = safeSolve(t(A) %*% A) %*% t(A) %*% Y
   Yhat = A %*% coefs
   gradient[[1]] = gradient[[1]] + (1 - pi) * (Yhat - Y) %*% t(coefs)
 
