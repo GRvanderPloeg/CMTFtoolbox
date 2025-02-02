@@ -80,6 +80,7 @@ acmtf_fg = function(x, Z, alpha=1, beta=rep(1e-3, length(Z$object)), epsilon=1e-
     gradient[[i]] = array(0L, dim(Fac[[i]]))
 
     # Gradient as generated per dataset
+    # Note: this is different from CMTF because it multiplies the residuals by the lambdas
     for(p in 1:numDatasets){
       modes = Z$modes[[p]]
 
@@ -115,13 +116,14 @@ acmtf_fg = function(x, Z, alpha=1, beta=rep(1e-3, length(Z$object)), epsilon=1e-
 
     for(j in 1:numComponents){
       lambda_r = Fac[[numModes+1]][i,j]
-      res = residuals[[i]]
+      residuals = reinflatedBlocks[[i]] - Z$object[[i]]
+      residuals = Z$missing[[i]] * residuals
 
       for(k in 1:length(modes)){
-        res = rTensor::ttm(res, t(as.matrix(Fac[[modes[k]]][,j])), k)
+        residuals = rTensor::ttm(residuals, t(as.matrix(Fac[[modes[k]]][,j])), k)
       }
 
-      gradient[[numModes+1]][i,j] = res@data[1] + ((beta[i]/2) * (lambda_r / (sqrt(lambda_r^2+epsilon))))
+      gradient[[numModes+1]][i,j] = residuals@data[1] + ((beta[i]/2) * (lambda_r / (sqrt(lambda_r^2+epsilon))))
     }
   }
 

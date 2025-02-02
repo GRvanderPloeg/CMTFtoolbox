@@ -71,7 +71,7 @@ acmtfr_gradient = function(x, Z, Y, alpha=1, beta=rep(1e-3, length(Z$object)), e
 
   # Gradient of A related to Y
   A = Fac[[1]]
-  coefs = safeSolve(t(A) %*% A) %*% t(A) %*% Y
+  coefs = solve(t(A) %*% A) %*% t(A) %*% Y
   Yhat = A %*% coefs
   gradient[[1]] = gradient[[1]] + (1 - pi) * (Yhat - Y) %*% t(coefs)
 

@@ -53,7 +53,7 @@ acmtfr_fg = function(x, Z, Y,
 
   # Calculate Y and coefs
   A = Fac[[1]]
-  coefs = safeSolve(t(A) %*% A) %*% t(A) %*% Y
+  coefs = solve(t(A) %*% A) %*% t(A) %*% Y
   Yhat = A %*% coefs
   Yres = Y - Yhat
 
@@ -132,6 +132,9 @@ acmtfr_fg = function(x, Z, Y,
   }
 
   # Gradient of A related to Y
+  A = Fac[[1]]
+  coefs = solve(t(A) %*% A) %*% t(A) %*% Y
+  Yhat = A %*% coefs
   gradient[[1]] = gradient[[1]] + (1 - pi) * (Yhat - Y) %*% t(coefs)
 
   # Gradient of the lambdas
@@ -141,13 +144,14 @@ acmtfr_fg = function(x, Z, Y,
 
     for(j in 1:numComponents){
       lambda_r = Fac[[numModes+1]][i,j]
-      res = residuals[[i]]
+      residuals = reinflatedBlocks[[i]] - Z$object[[i]]
+      residuals = Z$missing[[i]] * residuals
 
       for(k in 1:length(modes)){
-        res = rTensor::ttm(res, t(as.matrix(Fac[[modes[k]]][,j])), k)
+        residuals = rTensor::ttm(residuals, t(as.matrix(Fac[[modes[k]]][,j])), k)
       }
 
-      gradient[[numModes+1]][i,j] = res@data[1] + ((beta[i]/2) * (lambda_r / (sqrt(lambda_r^2+epsilon))))
+      gradient[[numModes+1]][i,j] = residuals@data[1] + ((beta[i]/2) * (lambda_r / (sqrt(lambda_r^2+epsilon))))
     }
   }
 

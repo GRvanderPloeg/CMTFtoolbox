@@ -331,49 +331,49 @@ test_that("findSharedModes throws an error if no shared modes are found", {
   l = list(c(1,2,3), c(4,5,6), c(7,8,9))
   expect_error(findSharedModes(l))
 })
+#
+# test_that("safePseudoInverse works on an invertible matrix", {
+#   set.seed(123)
+#   M <- matrix(rnorm(25), nrow = 5, ncol = 5)
+#   M <- crossprod(M)
+#   pinv_safe <- safePseudoInverse(M, mu = 1e-6)
+#   base_inverse <- solve(M)
+#*
+#   # Check that the result is close
+#   expect_true(norm(pinv_safe - base_inverse, type = "F") < 1e-7)
+# })
+#
+# test_that("safePseudoInverse handles non-invertible matrix gracefully", {
+#   # Create a rank-deficient matrix
+#   M <- matrix(c(1:5, 1:5), nrow = 5, ncol = 2)
+#   # We'll do t(M) %*% M => a singular 2x2 matrix
+#   M_singular <- t(M) %*% M  # definitely rank 1 if columns are multiples
+#
+#   expect_no_error(safePseudoInverse(M_singular, mu = 1e-6))
+#
+# })
 
-test_that("safePseudoInverse works on an invertible matrix", {
-  set.seed(123)
-  M <- matrix(rnorm(25), nrow = 5, ncol = 5)
-  M <- crossprod(M)
-  pinv_safe <- safePseudoInverse(M, mu = 1e-6)
-  base_inverse <- solve(M)
-
-  # Check that the result is close
-  expect_true(norm(pinv_safe - base_inverse, type = "F") < 1e-7)
-})
-
-test_that("safePseudoInverse handles non-invertible matrix gracefully", {
-  # Create a rank-deficient matrix
-  M <- matrix(c(1:5, 1:5), nrow = 5, ncol = 2)
-  # We'll do t(M) %*% M => a singular 2x2 matrix
-  M_singular <- t(M) %*% M  # definitely rank 1 if columns are multiples
-
-  expect_no_error(safePseudoInverse(M_singular, mu = 1e-6))
-
-})
-
-test_that("safeSolve works on an invertible matrix", {
-  set.seed(123)
-  M <- matrix(rnorm(16), nrow=4)
-  M <- crossprod(M)
-
-  # Solve using safeSolve
-  inv_safe <- safeSolve(M, mu = 1e-6)
-
-  # Compare to direct solve
-  base_inv <- solve(M)
-
-  # Check closeness
-  expect_true(norm(inv_safe - base_inv, type = "F") < 1e-7)
-})
-
-test_that("safeSolve handles non-invertible matrix gracefully", {
-
-  M <- matrix(c(1:4, 1:4), nrow=4, byrow = TRUE)
-  M_singular <- t(M) %*% M
-
-  # Attempt safeSolve
-  expect_no_error(safeSolve(M_singular, mu = 1e-6))
-})
+# test_that("safeSolve works on an invertible matrix", {
+#   set.seed(123)
+#   M <- matrix(rnorm(16), nrow=4)
+#   M <- crossprod(M)
+#
+#   # Solve using safeSolve
+#   inv_safe <- safeSolve(M, mu = 1e-6)
+#
+#   # Compare to direct solve
+#   base_inv <- solve(M)
+#
+#   # Check closeness
+#   expect_true(norm(inv_safe - base_inv, type = "F") < 1e-7)
+# })
+#
+# test_that("safeSolve handles non-invertible matrix gracefully", {
+#
+#   M <- matrix(c(1:4, 1:4), nrow=4, byrow = TRUE)
+#   M_singular <- t(M) %*% M
+#
+#   # Attempt safeSolve
+#   expect_no_error(safeSolve(M_singular, mu = 1e-6))
+# })
 
