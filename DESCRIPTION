@@ -25,7 +25,6 @@ Imports:
     methods,
     mize,
     multiway,
-    parafac4microbiome,
     parallel,
     pracma,
     rTensor,

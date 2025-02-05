@@ -12,10 +12,8 @@ ncrossreg(
   beta = rep(0.001, length(Z$object)),
   epsilon = 1e-08,
   pi = 0.5,
-  center = TRUE,
-  centerY = TRUE,
-  scale = TRUE,
   normalize = TRUE,
+  normY = sqrt(length(Z$object)),
   method = "CG",
   cg_update = "HS",
   line_search = "MT",
@@ -26,7 +24,7 @@ ncrossreg(
   grad_tol = 1e-10,
   nstart = 5,
   numCores = 1,
-  cvFolds = NULL
+  cvFolds = 2
 )
 }
 \arguments{
@@ -44,13 +42,9 @@ ncrossreg(
 
 \item{pi}{Pi value of the loss function as specified by Van der Ploeg et al., 2025.}
 
-\item{center}{Center the data per fold Does not apply to Y.}
+\item{normalize}{Normalize the X blocks to frobenius norm 1 (default TRUE).}
 
-\item{centerY}{Center Y per fold}
-
-\item{scale}{Scale the data per partition. Does not apply to Y.}
-
-\item{normalize}{Block scale the datasets to norm 1 per fold.}
+\item{normY}{Normalize Y to a specific value, (default: the sqrt of the number of blocks).}
 
 \item{method}{Optimization method to use (default = "CG", the conjugate gradient). See \code{\link[mize:mize]{mize::mize()}} for other options.}
 
@@ -75,9 +69,7 @@ fit with \code{numCores = 1} (to avoid nested parallelism) but the replicates ar
 
 \item{cvFolds}{Number of folds to use in the cross-validation. For example, if \code{cvFolds}
 is 5, then the subjects are deterministically partitioned into 5 groups
-(each CV iteration uses 4/5 for training and 1/5 for testing).
-If \code{cvFolds} is \code{NULL} (the default) or is greater than or equal to the number of subjects,
-then leave–one–out (jackknife) CV is performed.}
+(each CV iteration uses 4/5 for training and 1/5 for testing). Default: 2.}
 }
 \value{
 A list with two elements:
@@ -85,13 +77,9 @@ A list with two elements:
 - \strong{RMSE}: a tibble with the RMSE (computed over the unified CV prediction vector) per number of components.
 }
 \description{
-This function runs ACMTF-R with cross-validation. If the number of folds
-(\code{cvFolds}) is provided and is less than the number of subjects (i.e. the first
-dimension given in \code{Z$sizes[1]}), then a classical, deterministic K–fold partition
+This function runs ACMTF-R with cross-validation. A deterministic K–fold partition
 is used: the subjects are split in order into \code{cvFolds} groups. For each fold the
 training set consists of the other folds and the test set is the current fold.
-If \code{cvFolds} is \code{NULL} (the default) or is greater than or equal to the number of subjects,
-then leave–one–out (jackknife) CV is performed.
 }
 \details{
 For each fold and for each number of components, \emph{nstart} models are fitted—each

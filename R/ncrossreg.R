@@ -1,12 +1,8 @@
 #' Cross-validation of ACMTF-R by classical K-fold CV (or jackknife) with best-model selection per fold
 #'
-#' This function runs ACMTF-R with cross-validation. If the number of folds
-#' (`cvFolds`) is provided and is less than the number of subjects (i.e. the first
-#' dimension given in `Z$sizes[1]`), then a classical, deterministic K–fold partition
+#' This function runs ACMTF-R with cross-validation. A deterministic K–fold partition
 #' is used: the subjects are split in order into `cvFolds` groups. For each fold the
 #' training set consists of the other folds and the test set is the current fold.
-#' If `cvFolds` is `NULL` (the default) or is greater than or equal to the number of subjects,
-#' then leave–one–out (jackknife) CV is performed.
 #'
 #' For each fold and for each number of components, *nstart* models are fitted—each
 #' with a single initialization (i.e. using `nstart = 1` and `numCores = 1` in `acmtfr_opt`).
@@ -22,13 +18,9 @@
 #'                 fit with `numCores = 1` (to avoid nested parallelism) but the replicates are run in parallel.
 #' @param cvFolds Number of folds to use in the cross-validation. For example, if `cvFolds`
 #'                is 5, then the subjects are deterministically partitioned into 5 groups
-#'                (each CV iteration uses 4/5 for training and 1/5 for testing).
-#'                If `cvFolds` is `NULL` (the default) or is greater than or equal to the number of subjects,
-#'                then leave–one–out (jackknife) CV is performed.
-#' @param center Center the data per fold Does not apply to Y.
-#' @param centerY Center Y per fold
-#' @param scale Scale the data per partition. Does not apply to Y.
-#' @param normalize Block scale the datasets to norm 1 per fold.
+#'                (each CV iteration uses 4/5 for training and 1/5 for testing). Default: 2.
+#' @param normalize Normalize the X blocks to frobenius norm 1 (default TRUE).
+#' @param normY Normalize Y to a specific value, (default: the sqrt of the number of blocks).
 #'
 #' @return A list with two elements:
 #'         - **varExp**: a tibble with the variance–explained (for X and Y) per number of components.
@@ -59,10 +51,8 @@ ncrossreg = function(Z, Y,
                       beta = rep(1e-3, length(Z$object)),
                       epsilon = 1e-8,
                       pi = 0.5,
-                      center = TRUE,
-                      centerY = TRUE,
-                      scale = TRUE,
                       normalize = TRUE,
+                      normY = sqrt(length(Z$object)),
                       method = "CG",
                       cg_update = "HS",
                       line_search = "MT",
@@ -73,7 +63,7 @@ ncrossreg = function(Z, Y,
                       grad_tol = 1e-10,
                       nstart = 5,
                       numCores = 1,
-                      cvFolds = NULL) {
+                      cvFolds = 2) {
 
   ## --- Input Checking and CV Partitioning --- ##
   if (!is.list(Z)) stop("Z must be a list containing 'object', 'sizes', and 'modes'.")
@@ -82,20 +72,11 @@ ncrossreg = function(Z, Y,
   numSubjects = Z$sizes[1]
   if (nrow(Y) != numSubjects && length(Y) != numSubjects)
     stop("The number of rows (or length) of Y must equal the number of subjects (Z$sizes[1]).")
-  if (is.null(cvFolds)) cvFolds = numSubjects  # default to jackknife if not specified
-  if(centerY) Y  = Y - mean(Y)
 
-  if (cvFolds < numSubjects) {
-    cvMode = "kfold"
-    indices = seq_len(numSubjects)
-    foldsPartition = split(indices,
-                            cut(seq_along(indices), breaks = cvFolds, labels = FALSE))
-    uniqueFolds = seq_len(cvFolds)
-  } else {
-    cvMode = "jackknife"
-    uniqueFolds = seq_len(numSubjects)
-    foldsPartition = NULL
-  }
+  # Create CV folds
+  indices = seq_len(numSubjects)
+  foldsPartition = split(indices, cut(seq_along(indices), breaks = cvFolds, labels = FALSE))
+  uniqueFolds = seq_len(cvFolds)
 
   ## --- Create Settings Data Frame ---
   settings = expand.grid(numComponents = 1:maxNumComponents,
@@ -114,23 +95,62 @@ ncrossreg = function(Z, Y,
                                       foldID = currentRow$fold
                                       repID = currentRow$replicate
 
-                                      if (cvMode == "kfold") {
-                                        testIdx = foldsPartition[[foldID]]
-                                      } else {
-                                        testIdx = foldID
-                                      }
+                                      testIdx = foldsPartition[[foldID]]
                                       trainIdx = setdiff(seq_len(numSubjects), testIdx)
 
-                                      Xtrain = lapply(Z$object, function(x) x@data[trainIdx, ,])
-                                      Ztrain = setupCMTFdata(Xtrain, Z$modes, normalize=normalize)
-                                      Ytrain = Y[trainIdx]
+                                      ## Prepare X
+                                      Xtrain_final = list()
+                                      Xtest_final = list()
+                                      for(p in 1:length(Z$object)){
+                                        Xtrain = rTensor::as.tensor(Z$object[[p]]@data[trainIdx, ,])
+                                        Xtest = rTensor::as.tensor(Z$object[[p]]@data[testIdx, ,])
 
-                                      if(center) Xtrain = lapply(Xtrain, parafac4microbiome::multiwayCenter)
-                                      if(scale)  Xtrain = lapply(Xtrain, parafac4microbiome::multiwayScale)
-                                      if(centerY) Ytrain = Ytrain - mean(Ytrain)
+                                        # Centering Xtrain
+                                        unfoldedXtrain = rTensor::k_unfold(Xtrain, 1)@data
+                                        means = colMeans(unfoldedXtrain, na.rm=TRUE)
+                                        unfoldedXtrain_cnt = sweep(unfoldedXtrain, 2, means, FUN="-")
+                                        Xtrain_cnt = rTensor::k_fold(unfoldedXtrain_cnt, m=1, modes=Xtrain@modes)
+
+                                        # Use the means to center Xtest as well
+                                        unfoldedXtest = rTensor::k_unfold(Xtest, 1)@data
+                                        unfoldedXtest_cnt = sweep(unfoldedXtest, 2, means, FUN="-")
+                                        Xtest_cnt = rTensor::k_fold(unfoldedXtest_cnt, m=1, modes=Xtest@modes)
+
+                                        # Scaling Xtrain
+                                        unfoldedXtrain = rTensor::k_unfold(Xtrain_cnt, 2)@data
+                                        stds = apply(unfoldedXtrain, 1, function(x){stats::sd(x, na.rm=TRUE)})
+                                        unfoldedXtrain_scl = sweep(unfoldedXtrain, 1, stds, FUN="/")
+                                        Xtrain_cnt_scl = rTensor::k_fold(unfoldedXtrain_scl, m=2, modes=Xtrain@modes)
+
+                                        # Use the stds to scale Xtest as well
+                                        unfoldedXtest = rTensor::k_unfold(Xtest_cnt, 2)@data
+                                        unfoldedXtest_scl = sweep(unfoldedXtest, 1, stds, FUN="/")
+                                        Xtest_cnt_scl = rTensor::k_fold(unfoldedXtest_scl, m=2, modes=Xtest@modes)
+
+                                        if(normalize){
+                                          norm = rTensor::fnorm(Xtrain_cnt_scl)
+                                          Xtrain_final[[p]] = Xtrain_cnt_scl@data / norm
+                                          Xtest_final[[p]] = Xtest_cnt_scl@data / norm
+                                        } else{
+                                          Xtrain_final[[p]] = Xtrain_cnt_scl@data
+                                          Xtest_final[[p]] = Xtest_cnt_scl@data
+                                        }
+                                      }
+
+                                      Ztrain = setupCMTFdata(Xtrain_final, Z$modes, normalize=FALSE) # do not normalize again
+
+                                      ## Prepare Y
+                                      Ytrain = Y[trainIdx]
+                                      Ymean = mean(Ytrain)
+                                      Ytrain_cnt = Ytrain - Ymean
+
+                                      Ynorm = norm(Ytrain_cnt, "2")
+                                      Ytrain_normalized = Ytrain_cnt / Ynorm
+
+                                      Ytrain_final = Ytrain_normalized * normY
 
                                       # Each replicate is fitted with a single initialization and one core.
-                                      model_fit = CMTFtoolbox::acmtfr_opt(Ztrain, Ytrain,
+                                      model_fit = CMTFtoolbox::acmtfr_opt(Ztrain, Ytrain_final,
                                                                            numComponents = currentComp,
                                                                            alpha         = alpha,
                                                                            beta          = beta,
@@ -150,8 +170,11 @@ ncrossreg = function(Z, Y,
                                            fold = foldID,
                                            replicate = repID,
                                            testIdx = testIdx,
+                                           Ztrain = Ztrain,
                                            model = model_fit,
-                                           Ztrain = Ztrain)
+                                           Xtest = Xtest_final,
+                                           Ymean = Ymean,
+                                           Ynorm = Ynorm)
                                     }
     parallel::stopCluster(cl)
   } else {
@@ -162,43 +185,87 @@ ncrossreg = function(Z, Y,
       foldID = currentRow$fold
       repID = currentRow$replicate
 
-      if (cvMode == "kfold") {
-        testIdx = foldsPartition[[foldID]]
-      } else {
-        testIdx = foldID
-      }
+      testIdx = foldsPartition[[foldID]]
       trainIdx = setdiff(seq_len(numSubjects), testIdx)
 
-      Xtrain = lapply(Z$object, function(x) x@data[trainIdx, ,])
-      Ztrain = setupCMTFdata(Xtrain, Z$modes, normalize=normalize)
-      Ytrain = Y[trainIdx]
+      ## Prepare X
+      Xtrain_final = list()
+      Xtest_final = list()
+      for(p in 1:length(Z$object)){
+        Xtrain = rTensor::as.tensor(Z$object[[p]]@data[trainIdx, ,])
+        Xtest = rTensor::as.tensor(Z$object[[p]]@data[testIdx, ,])
 
-      if(center) Xtrain = lapply(Xtrain, parafac4microbiome::multiwayCenter)
-      if(scale)  Xtrain = lapply(Xtrain, parafac4microbiome::multiwayScale)
-      if(centerY) Ytrain = Ytrain - mean(Ytrain)
+        # Centering Xtrain
+        unfoldedXtrain = rTensor::k_unfold(Xtrain, 1)@data
+        means = colMeans(unfoldedXtrain, na.rm=TRUE)
+        unfoldedXtrain_cnt = sweep(unfoldedXtrain, 2, means, FUN="-")
+        Xtrain_cnt = rTensor::k_fold(unfoldedXtrain_cnt, m=1, modes=Xtrain@modes)
+
+        # Use the means to center Xtest as well
+        unfoldedXtest = rTensor::k_unfold(Xtest, 1)@data
+        unfoldedXtest_cnt = sweep(unfoldedXtest, 2, means, FUN="-")
+        Xtest_cnt = rTensor::k_fold(unfoldedXtest_cnt, m=1, modes=Xtest@modes)
+
+        # Scaling Xtrain
+        unfoldedXtrain = rTensor::k_unfold(Xtrain_cnt, 2)@data
+        stds = apply(unfoldedXtrain, 1, function(x){stats::sd(x, na.rm=TRUE)})
+        unfoldedXtrain_scl = sweep(unfoldedXtrain, 1, stds, FUN="/")
+        Xtrain_cnt_scl = rTensor::k_fold(unfoldedXtrain_scl, m=2, modes=Xtrain@modes)
+
+        # Use the stds to scale Xtest as well
+        unfoldedXtest = rTensor::k_unfold(Xtest_cnt, 2)@data
+        unfoldedXtest_scl = sweep(unfoldedXtest, 1, stds, FUN="/")
+        Xtest_cnt_scl = rTensor::k_fold(unfoldedXtest_scl, m=2, modes=Xtest@modes)
+
+        if(normalize){
+          norm = rTensor::fnorm(Xtrain_cnt_scl)
+          Xtrain_final[[p]] = Xtrain_cnt_scl@data / norm
+          Xtest_final[[p]] = Xtest_cnt_scl@data / norm
+        } else{
+          Xtrain_final[[p]] = Xtrain_cnt_scl@data
+          Xtest_final[[p]] = Xtest_cnt_scl@data
+        }
+      }
+
+      Ztrain = setupCMTFdata(Xtrain_final, Z$modes, normalize=FALSE) # do not normalize again
+
+      ## Prepare Y
+      Ytrain = Y[trainIdx]
+      Ymean = mean(Ytrain)
+      Ytrain_cnt = Ytrain - Ymean
+
+      Ynorm = norm(Ytrain_cnt, "2")
+      Ytrain_normalized = Ytrain_cnt / Ynorm
+
+      Ytrain_final = Ytrain_normalized * normY
+
+      # Fit model
+      model = CMTFtoolbox::acmtfr_opt(Ztrain, Ytrain_final,
+                              numComponents = currentComp,
+                              alpha         = alpha,
+                              beta          = beta,
+                              epsilon       = epsilon,
+                              pi            = pi,
+                              method        = method,
+                              cg_update     = cg_update,
+                              line_search   = line_search,
+                              max_iter      = max_iter,
+                              max_fn        = max_fn,
+                              abs_tol       = abs_tol,
+                              rel_tol       = rel_tol,
+                              grad_tol      = grad_tol,
+                              nstart        = 1,
+                              numCores      = 1)
 
       resultsList[[i]] = list(numComponents = currentComp,
-                               fold = foldID,
-                               replicate = repID,
-                               testIdx = testIdx,
-                               Ztrain = Ztrain,
-                               model = CMTFtoolbox::acmtfr_opt(Ztrain, Ytrain,
-                                                               numComponents = currentComp,
-                                                               alpha         = alpha,
-                                                               beta          = beta,
-                                                               epsilon       = epsilon,
-                                                               pi            = pi,
-                                                               method        = method,
-                                                               cg_update     = cg_update,
-                                                               line_search   = line_search,
-                                                               max_iter      = max_iter,
-                                                               max_fn        = max_fn,
-                                                               abs_tol       = abs_tol,
-                                                               rel_tol       = rel_tol,
-                                                               grad_tol      = grad_tol,
-                                                               nstart        = 1,
-                                                               numCores      = 1),
-                               Ztrain = Ztrain)
+                              fold = foldID,
+                              replicate = repID,
+                              testIdx = testIdx,
+                              Ztrain = Ztrain,
+                              model = model,
+                              Xtest = Xtest_final,
+                              Ymean = Ymean,
+                              Ynorm = Ynorm)
     }
   }
 
@@ -217,22 +284,20 @@ ncrossreg = function(Z, Y,
   predictionsByComp = vector("list", maxNumComponents)
 
   for (comp in 1:maxNumComponents) {
+    Ytest_comp = rep(NA, numSubjects)
     Ypred_comp = rep(NA, numSubjects)
-    if (cvMode == "kfold") {
-      foldsToUse = uniqueFolds
-    } else {
-      foldsToUse = seq_len(numSubjects)
-    }
+    foldsToUse = uniqueFolds
+
     for (fold in foldsToUse) {
       key = paste(comp, fold, sep = "_")
       if (!is.null(bestModels[[key]])) {
         bestEntry = bestModels[[key]]
-        testIdx = bestEntry$testIdx
-        Xtest = lapply(Z$object, function(x) x@data[testIdx, ,])
-        if(center) Xtest  = lapply(Xtest, parafac4microbiome::multiwayCenter)
-        if(scale)  Xtest  = lapply(Xtest, parafac4microbiome::multiwayScale)
-        pred = npred(bestEntry$model, Xtest, bestEntry$Ztrain)
-        Ypred_comp[testIdx] = pred
+        pred = npred(bestEntry$model, bestEntry$Xtest, bestEntry$Ztrain)
+        pred_norm = pred / normY
+        pred_cnt = pred_norm * bestEntry$Ynorm
+        pred_original = pred_cnt + bestEntry$Ymean
+
+        Ypred_comp[bestEntry$testIdx] = pred_original
       }
     }
     predictionsByComp[[comp]] = Ypred_comp

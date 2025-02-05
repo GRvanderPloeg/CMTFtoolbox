@@ -36,12 +36,12 @@
 #' Ypred = npred(model, Xtest, Ztrain, sharedMode=1)
 npred = function(model, newX, Z, sharedMode=1){
 
-  numDatasets = length(model$varExp)
+  numDatasets = length(Z$object)
   numComponents = length(model$rho)
-  numModes = length(model$Fac) - 1 # the last element contains the lambdas
+  numModes = max(unlist(Z$modes))
   Fac = model$Fac
 
-  # Find a projection matrix Z, not to be confused with Z containing the datasets.
+  # Find a projection matrix Zproj
   Zproj = list()
   for(p in 1:numDatasets){
     modes = Z$modes[[p]]
