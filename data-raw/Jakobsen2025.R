@@ -12,6 +12,7 @@ sampleInfo = read.csv("./data-raw/faeces_sampleMeta.csv", header=FALSE, sep=" ")
 colnames(sampleInfo) = c("Sample", "RCID", "BMI", "BMI.group", "Days", "Gestational.age", "C.section", "AB.infant", "AB.mother", "Secretor", "Lewis", "subject")
 sampleInfo = sampleInfo %>% left_join(infant_anthropometrics %>% select(RCID, whz.6m))
 subjectMeta_faeces = sampleInfo %>% select(subject, BMI, BMI.group, C.section, Secretor, Lewis, whz.6m) %>% unique() %>% mutate(subject=as.character(subject)) %>% arrange(subject)
+subjectMeta_faeces = subjectMeta_faeces[-90,]
 
 # Milk subject info
 sampleInfo = read.csv("./data-raw/milk_sampleMeta.csv", header=FALSE, sep=" ") %>% as_tibble()
@@ -66,10 +67,6 @@ for(k in 1:K){
   Day = timepoints[k]
   X[,,k] = cbind(df_clr, sampleInfo) %>% as_tibble() %>% mutate(subject=as.character(subject)) %>% filter(Days == Day) %>% select(c(colnames(df_clr),subject)) %>% right_join(subjectMeta) %>% arrange(subject) %>% select(-colnames(subjectMeta)) %>% as.matrix()
 }
-
-# As in Jakobsen2025, remove subject 282 (row 90)
-X = X[-90,,]
-subjectMeta = subjectMeta[-90,,]
 
 # Mask based on shared subjects for BMI and WHZ
 X_bmi = X[subjectMeta$subject %in% homogenized_subjectMeta_bmi$subject,,]
