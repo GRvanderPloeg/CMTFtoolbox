@@ -2,7 +2,7 @@
 % Please edit documentation in R/ncrossreg.R
 \name{ncrossreg}
 \alias{ncrossreg}
-\title{Cross-validation of ACMTF-R by classical K-fold CV (or jackknife) with best-model selection per fold}
+\title{Cross-validation of ACMTF-R by classical K-fold CV with best-model selection per fold}
 \usage{
 ncrossreg(
   Z,
@@ -13,7 +13,7 @@ ncrossreg(
   epsilon = 1e-08,
   pi = 0.5,
   normalize = TRUE,
-  normY = sqrt(length(Z$object)),
+  normY = 1,
   method = "CG",
   cg_update = "HS",
   line_search = "MT",
@@ -44,7 +44,7 @@ ncrossreg(
 
 \item{normalize}{Normalize the X blocks to frobenius norm 1 (default TRUE).}
 
-\item{normY}{Normalize Y to a specific value, (default: the sqrt of the number of blocks).}
+\item{normY}{Normalize Y to a specific value, (default: 1).}
 
 \item{method}{Optimization method to use (default = "CG", the conjugate gradient). See \code{\link[mize:mize]{mize::mize()}} for other options.}
 

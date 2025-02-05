@@ -1,4 +1,4 @@
-#' Cross-validation of ACMTF-R by classical K-fold CV (or jackknife) with best-model selection per fold
+#' Cross-validation of ACMTF-R by classical K-fold CV with best-model selection per fold
 #'
 #' This function runs ACMTF-R with cross-validation. A deterministic K–fold partition
 #' is used: the subjects are split in order into `cvFolds` groups. For each fold the
@@ -20,7 +20,7 @@
 #'                is 5, then the subjects are deterministically partitioned into 5 groups
 #'                (each CV iteration uses 4/5 for training and 1/5 for testing). Default: 2.
 #' @param normalize Normalize the X blocks to frobenius norm 1 (default TRUE).
-#' @param normY Normalize Y to a specific value, (default: the sqrt of the number of blocks).
+#' @param normY Normalize Y to a specific value, (default: 1).
 #'
 #' @return A list with two elements:
 #'         - **varExp**: a tibble with the variance–explained (for X and Y) per number of components.
@@ -52,7 +52,7 @@ ncrossreg = function(Z, Y,
                       epsilon = 1e-8,
                       pi = 0.5,
                       normalize = TRUE,
-                      normY = sqrt(length(Z$object)),
+                      normY = 1,
                       method = "CG",
                       cg_update = "HS",
                       line_search = "MT",
