@@ -75,6 +75,7 @@ is 5, then the subjects are deterministically partitioned into 5 groups
 A list with two elements:
 - \strong{varExp}: a tibble with the variance–explained (for X and Y) per number of components.
 - \strong{RMSE}: a tibble with the RMSE (computed over the unified CV prediction vector) per number of components.
+- \strong{FMS}: a tibble with Factor Match Score per data block per number of components.
 }
 \description{
 This function runs ACMTF-R with cross-validation. A deterministic K–fold partition

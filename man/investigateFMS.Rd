@@ -28,7 +28,7 @@ investigateFMS(
 
 \item{sharedMode}{Mode that is shared between all blocks, used to remove fibers for numFolds randomly initialized models.}
 
-\item{model}{Model type to run, either "acmtf" or "cmtf" (default "acmtf").}
+\item{model}{Model type to run, "acmtf" or "cmtf" (default "acmtf").}
 
 \item{minNumComponents}{Minimum number of components to check (default 1).}
 

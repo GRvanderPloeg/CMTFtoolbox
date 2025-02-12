@@ -3,7 +3,7 @@
 #' @inheritParams acmtf_opt
 #' @inheritParams setupCMTFdata
 #' @param sharedMode Mode that is shared between all blocks, used to remove fibers for numFolds randomly initialized models.
-#' @param model Model type to run, either "acmtf" or "cmtf" (default "acmtf").
+#' @param model Model type to run, "acmtf" or "cmtf" (default "acmtf").
 #' @param minNumComponents Minimum number of components to check (default 1).
 #' @param maxNumComponents Maximum number of components to check (default 3).
 #' @param numFolds Number of randomly initialized models to create (default 10).

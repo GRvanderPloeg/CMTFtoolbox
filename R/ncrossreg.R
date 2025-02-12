@@ -25,6 +25,7 @@
 #' @return A list with two elements:
 #'         - **varExp**: a tibble with the variance–explained (for X and Y) per number of components.
 #'         - **RMSE**: a tibble with the RMSE (computed over the unified CV prediction vector) per number of components.
+#'         - **FMS**: a tibble with Factor Match Score per data block per number of components.
 #'
 #' @export
 #'
@@ -307,6 +308,28 @@ ncrossreg = function(Z, Y,
   RMSEdata = dplyr::tibble(numComponents = 1:maxNumComponents,
                             RMSE = RMSE_list)
 
+  ## --- Calculate FMS for all folds --- ##
+  FMSresult = list()
+  for (comp in 1:maxNumComponents) {
+    FMS = list()
+    iterator = 1
+    numFolds = length(uniqueFolds)
+
+    for(i in 1:(numFolds-1)){
+      for(j in (i+1):numFolds){
+        model1 = bestModels[[paste(comp, uniqueFolds[i], sep="_")]]$model
+        model2 = bestModels[[paste(comp, uniqueFolds[j], sep="_")]]$model
+        FMS[[iterator]] = as.data.frame(t(as.matrix(computeFMS(model1$Fac, model2$Fac, Z$modes))))
+        iterator = iterator + 1
+      }
+    }
+    result = do.call(rbind,FMS)
+    colnames(result) = paste0("X", 1:ncol(result))
+    result = result %>% dplyr::as_tibble() %>% dplyr::mutate(numComponents=comp)
+    FMSresult[[comp]] = result
+  }
+  FMSresult = do.call(rbind, FMSresult)
+
   ## --- Fit Full-Data Models to Compute Variance-Explained --- ##
   varExpX = matrix(NA, nrow = maxNumComponents, ncol = length(Z$object))
   varExpY = rep(NA, maxNumComponents)
@@ -336,7 +359,8 @@ ncrossreg = function(Z, Y,
                                        Y = varExpY))
 
   return(list("varExp" = varExpData,
-              "RMSE"   = RMSEdata))
+              "RMSE"   = RMSEdata,
+              "FMS"    = FMSresult))
 }
 
 # Ugly solution to namespace issues caused by dplyr
