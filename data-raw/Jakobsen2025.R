@@ -1,5 +1,6 @@
 library(tidyverse)
 library(ggplot2)
+library(ggpubr)
 library(stringr)
 library(parafac4microbiome)
 library(CMTFtoolbox)
@@ -46,15 +47,15 @@ taxonomy = taxonomy[featureMask,]
 
 # Filter based on sparsity
 threshold = 0.75
-
 sparsity = colSums(df==0) / nrow(df)
-
 featureSelection = sparsity <= threshold
-taxonomy_filtered = taxonomy[featureSelection,]
-df_filtered = df[,featureSelection]
 
 # CLR
-df_clr = t(apply(df_filtered+1, 1, function(x){log(x / compositions::geometricmean(x))})) %>% as_tibble()
+df_clr = t(apply(df+1, 1, function(x){log(x / compositions::geometricmean(x))})) %>% as_tibble()
+
+# Apply feature filter
+df_clr = df_clr[,featureSelection]
+taxonomy_filtered = taxonomy[featureSelection,]
 
 # Make into cube
 I = length(unique(sampleInfo$subject))
@@ -65,7 +66,15 @@ timepoints = sampleInfo %>% arrange(Days) %>% select(Days) %>% unique() %>% pull
 
 for(k in 1:K){
   Day = timepoints[k]
-  X[,,k] = cbind(df_clr, sampleInfo) %>% as_tibble() %>% mutate(subject=as.character(subject)) %>% filter(Days == Day) %>% select(c(colnames(df_clr),subject)) %>% right_join(subjectMeta) %>% arrange(subject) %>% select(-colnames(subjectMeta)) %>% as.matrix()
+  X[,,k] = cbind(df_clr, sampleInfo) %>%
+    as_tibble() %>%
+    mutate(subject=as.character(subject)) %>%
+    filter(Days == Day) %>%
+    select(c(colnames(df_clr),subject)) %>%
+    right_join(subjectMeta) %>%
+    arrange(subject) %>%
+    select(-colnames(subjectMeta)) %>%
+    as.matrix()
 }
 
 # Mask based on shared subjects for BMI and WHZ
@@ -82,6 +91,7 @@ X_whz_cnt_scl = parafac4microbiome::multiwayScale(X_whz_cnt, mode=2)
 # Save
 faeces_df_bmi = X_bmi_cnt_scl
 faeces_df_whz = X_whz_cnt_scl
+faeces_subjectMeta = subjectMeta
 faeces_taxonomy = taxonomy_filtered
 faeces_timepoints = timepoints
 
@@ -101,15 +111,15 @@ taxonomy = taxonomy[featureMask,]
 
 # Filter based on sparsity
 threshold = 0.85
-
 sparsity = colSums(df==0) / nrow(df)
-
 featureSelection = sparsity <= threshold
-taxonomy_filtered = taxonomy[featureSelection,]
-df_filtered = df[,featureSelection]
 
 # CLR
-df_clr = t(apply(df_filtered+1, 1, function(x){log(x / compositions::geometricmean(x))})) %>% as_tibble()
+df_clr = t(apply(df+1, 1, function(x){log(x / compositions::geometricmean(x))})) %>% as_tibble()
+
+# Apply feature filter
+df_clr = df_clr[,featureSelection]
+taxonomy_filtered = taxonomy[featureSelection,]
 
 # Make into cube
 I = length(unique(sampleInfo$subject))
@@ -136,6 +146,7 @@ X_whz_cnt_scl = parafac4microbiome::multiwayScale(X_whz_cnt, mode=2)
 
 milk_df_bmi = X_bmi_cnt_scl
 milk_df_whz = X_whz_cnt_scl
+milk_subjectMeta = subjectMeta
 milk_taxonomy = taxonomy_filtered
 milk_timepoints = timepoints
 
@@ -182,6 +193,7 @@ X_whz_cnt_scl = parafac4microbiome::multiwayScale(X_whz_cnt, mode=2)
 
 milkMetab_df_bmi = X_bmi_cnt_scl
 milkMetab_df_whz = X_whz_cnt_scl
+milkMetab_subjectMeta = subjectMeta
 milkMetab_taxonomy = taxonomy
 milkMetab_timepoints = timepoints
 
