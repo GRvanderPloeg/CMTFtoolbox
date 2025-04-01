@@ -41,4 +41,4 @@ VignetteBuilder: knitr
 Depends: 
     R (>= 2.10)
 LazyData: true
-URL: https://grvanderploeg.github.io/CMTFtoolbox/
+URL: https://grvanderploeg.github.io/CMTFtoolbox/, https://grvanderploeg.com/CMTFtoolbox/

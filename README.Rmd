@@ -15,7 +15,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# CMTFtoolbox 
+# CMTFtoolbox <a href="https://grvanderploeg.github.io/CMTFtoolbox/"><img src="man/figures/logo.png" align="right" height="139" alt="CMTFtoolbox website" /></a>
 
 <!-- badges: start -->
 [![codecov](https://codecov.io/gh/GRvanderPloeg/CMTFtoolbox/graph/badge.svg?token=Y8XWFAV0IC)](https://codecov.io/gh/GRvanderPloeg/CMTFtoolbox) [![R-CMD-check](https://github.com/GRvanderPloeg/CMTFtoolbox/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/GRvanderPloeg/CMTFtoolbox/actions/workflows/R-CMD-check.yaml)
