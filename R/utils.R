@@ -293,13 +293,17 @@ safePseudoInverse = function(M, mu=1e-6){
 
 safeSolve = function(M, mu=1e-6){
 
-  attempt = try(solve(M), silent=TRUE)
-  if(inherits(attempt, "try-error")){
-    regM = M + mu * diag(ncol(M))
-    inv = solve(regM)
-  } else{
-    inv = attempt
-  }
-
+  regM = M + mu*diag(ncol(M))
+  inv = solve(regM)
   return(inv)
+
+  # attempt = try(solve(M), silent=TRUE)
+  # if(inherits(attempt, "try-error")){
+  #   regM = M + mu * diag(ncol(M))
+  #   inv = solve(regM)
+  # } else{
+  #   inv = attempt
+  # }
+  #
+  # return(inv)
 }

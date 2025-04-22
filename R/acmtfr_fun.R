@@ -7,6 +7,7 @@
 #' @param beta Beta value of the loss function as specified by Acar et al., 2014
 #' @param epsilon Epsilon value of the loss function as specified by Acar et al., 2014
 #' @param pi Pi value of the loss function as specified by Van der Ploeg et al., 2025.
+#' @param mu Ridge term parameter for calculation of the regression coefficients rho (default = 1e-6).
 #' @param manual Manual calculation of each loss term (default FALSE).
 #'
 #' @return Scalar of the loss function value (when manual=FALSE), otherwise a list containing all loss terms.
@@ -33,6 +34,7 @@ acmtfr_fun = function(x, Z, Y,
                       beta=rep(1e-3, length(Z$object)),
                       epsilon=1e-8,
                       pi=0.5,
+                      mu=1e-6,
                       manual=FALSE){
 
   numDatasets = length(Z$object)
@@ -55,7 +57,7 @@ acmtfr_fun = function(x, Z, Y,
 
   # Penalty for fit on Y
   A = Fac[[1]]
-  coefs = safeSolve(t(A) %*% A) %*% t(A) %*% Y
+  coefs = safeSolve(t(A) %*% A, mu) %*% t(A) %*% Y
   Yhat = A %*% coefs
   Yres = Y - Yhat
   Ynorm = norm(Yres, "2")

@@ -12,6 +12,7 @@ acmtfr_fun(
   beta = rep(0.001, length(Z$object)),
   epsilon = 1e-08,
   pi = 0.5,
+  mu = 1e-06,
   manual = FALSE
 )
 }
@@ -29,6 +30,8 @@ acmtfr_fun(
 \item{epsilon}{Epsilon value of the loss function as specified by Acar et al., 2014}
 
 \item{pi}{Pi value of the loss function as specified by Van der Ploeg et al., 2025.}
+
+\item{mu}{Ridge term parameter for calculation of the regression coefficients rho (default = 1e-6).}
 
 \item{manual}{Manual calculation of each loss term (default FALSE).}
 }

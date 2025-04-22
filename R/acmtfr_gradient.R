@@ -21,7 +21,7 @@
 #'
 #' init = initializeACMTF(Z, 2, output="vect")
 #' g = acmtfr_gradient(init, Z, Y)
-acmtfr_gradient = function(x, Z, Y, alpha=1, beta=rep(1e-3, length(Z$object)), epsilon=1e-8, pi=0.5){
+acmtfr_gradient = function(x, Z, Y, alpha=1, beta=rep(1e-3, length(Z$object)), epsilon=1e-8, pi=0.5, mu=1e-6){
 
   numDatasets = length(Z$object)
   numModes = max(unlist(Z$modes))
@@ -71,7 +71,7 @@ acmtfr_gradient = function(x, Z, Y, alpha=1, beta=rep(1e-3, length(Z$object)), e
 
   # Gradient of A related to Y
   A = Fac[[1]]
-  coefs = safeSolve(t(A) %*% A) %*% t(A) %*% Y
+  coefs = safeSolve(t(A) %*% A, mu) %*% t(A) %*% Y
   Yhat = A %*% coefs
   gradient[[1]] = gradient[[1]] + (1 - pi) * (Yhat - Y) %*% t(coefs)
 
