@@ -93,7 +93,6 @@ cv_degeneracy = function(Z,
     ggplot2::facet_wrap(~pi) +
     ggplot2::geom_boxplot() +
     ggplot2::scale_y_log10() +
-    ggplot2::geom_hline(yintercept=1,col="red") +
     ggplot2::xlab("Number of components") +
     ggplot2::ylab("TCC")
 
