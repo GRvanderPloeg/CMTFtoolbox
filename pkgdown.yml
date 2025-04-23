@@ -3,7 +3,7 @@ pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
   CMTF_simulation: CMTF_simulation.html
-last_built: 2025-04-22T09:18Z
+last_built: 2025-04-23T08:54Z
 urls:
   reference: https://grvanderploeg.com/CMTFtoolbox/reference
   article: https://grvanderploeg.com/CMTFtoolbox/articles
