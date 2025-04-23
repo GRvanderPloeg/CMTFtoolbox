@@ -13,6 +13,7 @@ acmtfr_opt(
   beta = rep(0.001, length(Z$object)),
   epsilon = 1e-08,
   pi = 0.5,
+  mu = 1e-06,
   method = "CG",
   cg_update = "HS",
   line_search = "MT",
@@ -43,6 +44,8 @@ acmtfr_opt(
 \item{epsilon}{Scalar value to make it possible to compute the partial derivatives of lambda (default 1e-8).}
 
 \item{pi}{Pi value of the loss function as specified by Van der Ploeg et al., 2025.}
+
+\item{mu}{Ridge term parameter for calculation of the regression coefficients rho (default = 1e-6).}
 
 \item{method}{Optimization method to use (default = "CG", the conjugate gradient). See \code{\link[mize:mize]{mize::mize()}} for other options.}
 

@@ -25,7 +25,7 @@
 #'
 #' # specific setting to reduce runtime for CRAN
 #' model = acmtfr_opt(Z, Y, 2, rel_tol=1e-5, abs_tol=1e-5)
-acmtfr_opt = function(Z, Y, numComponents, initialization="random", alpha=1, beta=rep(1e-3, length(Z$object)), epsilon=1e-8, pi=0.5, method="CG", cg_update="HS", line_search="MT", max_iter=10000, max_fn=10000, abs_tol=1e-10, rel_tol=1e-10, grad_tol=1e-10, nstart=1, numCores=1, sortComponents=TRUE, allOutput=FALSE){
+acmtfr_opt = function(Z, Y, numComponents, initialization="random", alpha=1, beta=rep(1e-3, length(Z$object)), epsilon=1e-8, pi=0.5, mu=1e-6, method="CG", cg_update="HS", line_search="MT", max_iter=10000, max_fn=10000, abs_tol=1e-10, rel_tol=1e-10, grad_tol=1e-10, nstart=1, numCores=1, sortComponents=TRUE, allOutput=FALSE){
   numModes = max(unlist(Z$modes))
   numDatasets = length(Z$object)
 
