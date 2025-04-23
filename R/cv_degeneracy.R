@@ -67,7 +67,7 @@ cv_degeneracy = function(Z,
   } else{
     cl = parallel::makeCluster(parallel::detectCores())
     doParallel::registerDoParallel(cl)
-    models = foreach::nrow(i=1:length(settings)) %dopar% {
+    models = foreach::foreach(i=1:nrow(settings)) %dopar% {
       comp=settings[i,1]
       piValue = settings[i,2]
       model=CMTFtoolbox::acmtfr_opt(Z,Y,numComponents=comp,initialization=initialization,beta=beta,pi=piValue,mu=mu,method=method,cg_update=cg_update,line_search=line_search,max_iter=max_iter,max_fn=max_fn,abs_tol=abs_tol,rel_tol=rel_tol,grad_tol=grad_tol,nstart=1)
