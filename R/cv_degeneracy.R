@@ -75,16 +75,27 @@ cv_degeneracy = function(Z,
     parallel::stopCluster(cl)
   }
 
-  rhos = unlist(lapply(models, FUN=function(x){max(abs(x$rho))}))
-  plot = cbind(settings,rhos) %>%
+  TCCfunc = function(A){
+    d = ncol(A)
+    M = matrix(0L, nrow=d, ncol=d)
+
+    for(i in 1:d){
+      for(j in 1:d){
+        M[i,j] = multiway::congru(A[,i],A[,j])
+      }
+    }
+    return(max(abs(M-diag(d))))
+  }
+  TCCs = unlist(lapply(models, FUN=function(x){TCCfunc(x$Fac[[1]])}))
+  plot = cbind(settings,TCCs) %>%
     dplyr::as_tibble() %>%
-    ggplot2::ggplot(ggplot2::aes(x=as.factor(numComponents),y=rhos)) +
+    ggplot2::ggplot(ggplot2::aes(x=as.factor(numComponents),y=TCCs)) +
     ggplot2::facet_wrap(~pi) +
     ggplot2::geom_boxplot() +
     ggplot2::scale_y_log10() +
     ggplot2::geom_hline(yintercept=1,col="red") +
     ggplot2::xlab("Number of components") +
-    ggplot2::ylab(expression(rho))
+    ggplot2::ylab("TCC")
 
   result = list("models" = models,
                 "settings" = settings,
