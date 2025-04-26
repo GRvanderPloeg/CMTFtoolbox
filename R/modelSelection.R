@@ -1,4 +1,4 @@
-#' Factor Match Score (FMS) for model selection
+#' Model selection
 #'
 #' @inheritParams acmtf_opt
 #' @inheritParams setupCMTFdata
@@ -8,26 +8,32 @@
 #' @param cvFolds Number of CV folds to create (default 10).
 #' @param numCores Number of cores to use (default 1). A number higher than 1 will run the process in parallel.
 #'
-#' @return List containing "FMS" with the resulting pairwise comparisons of all models per number of components and "plot" with an overview plot.
+#' @return List object containing plots of all metrics and dataframes containing the data used to create them.
 #' @export
 #' @importFrom magrittr "%>%"
 #' @importFrom foreach %dopar%
 #'
 #' @examples
 #' set.seed(123)
-#' A = array(rnorm(108*2), c(108, 2))
-#' B = array(rnorm(100*2), c(100, 2))
-#' C = array(rnorm(10*2), c(10, 2))
-#' D = array(rnorm(100*2), c(100,2))
-#' E = array(rnorm(10*2), c(10,2))
 #'
-#' df1 = reinflateTensor(A, B, C)
-#' df2 = reinflateTensor(A, D, E)
-#' datasets = list(df1, df2)
+#' I = 10
+#' J = 5
+#' K = 3
+#' df = array(rnorm(I*J*K), c(I,J,K))
+#' df2 = array(rnorm(I*J*K), c(I,J,K))
+#' datasets = list(df, df2)
 #' modes = list(c(1,2,3), c(1,4,5))
 #'
-#' # specific setting to reduce runtime for CRAN
-#' result = investigateFMS(datasets, modes, 1, model="acmtf", numFolds=2, rel_tol=1e-4, abs_tol=1e-4)
+#' # A very small procedure is run to limit computational requirements
+#' result = modelSelection(datasets,
+#'                         modes,
+#'                         maxNumComponents=2,
+#'                         nstart=2,
+#'                         cvFolds=2,
+#'                         rel_tol=1e-4,
+#'                         abs_tol=1e-4)
+#'
+#' result$plots$overview
 modelSelection = function(datasets, modes, maxNumComponents=3, sharedMode=1, alpha=1, beta=rep(0.001, length(datasets)), epsilon=1e-8, nstart=10, cvFolds=10, numCores=1, method="CG", cg_update="HS", line_search="MT", max_iter=10000, max_fn=100000, rel_tol=1e-8, abs_tol=1e-8, grad_tol=1e-8){
 
   numDatasets = length(datasets)
@@ -44,7 +50,8 @@ modelSelection = function(datasets, modes, maxNumComponents=3, sharedMode=1, alp
     models = acmtf_opt(Z, i, alpha=alpha, beta=beta, epsilon=epsilon, method=method, cg_update=cg_update, line_search="MT", max_iter=max_iter, max_fn=max_fn, rel_tol=rel_tol, abs_tol=abs_tol, grad_tol=grad_tol, nstart=nstart, allOutput = TRUE)
 
     # Compute FMS_random
-    FMS = matrix(0L, nrow=(nstart*nstart/2)-1, ncol=numDatasets)
+    numCombinations = (nstart * (nstart-1))/2
+    FMS = matrix(0L, nrow=numCombinations, ncol=numDatasets)
     iterator = 1
     for(j in 1:(nstart-1)){
       for(k in (j+1):nstart){
@@ -222,8 +229,9 @@ modelSelection = function(datasets, modes, maxNumComponents=3, sharedMode=1, alp
 
   ## --- Calculate FMS_CV for all folds --- ##
   FMS_CV_result = list()
+  numCombinations = (cvFolds * (cvFolds-1)) / 2
   for(i in 1:maxNumComponents){
-    FMS = matrix(0L, nrow=(cvFolds*cvFolds/2)-1, ncol=numDatasets)
+    FMS = matrix(0L, nrow=numCombinations, ncol=numDatasets)
     iterator = 1
 
     for(j in 1:(cvFolds-1)){
@@ -314,14 +322,8 @@ modelSelection = function(datasets, modes, maxNumComponents=3, sharedMode=1, alp
 
   plots$overview = ggpubr::ggarrange(plots$varExp, plots$FMS_random, plots$degeneracyScore, plots$FMS_CV, common.legend=TRUE)
 
-  # Save models
-  models = list("random" = random_models,
-                "cv" = resultsList,
-                "cv_best" = bestModels)
-
   result = list("metrics"=metrics,
-                "plots"=plots,
-                "models"=models)
+                "plots"=plots)
 
   return(result)
 }

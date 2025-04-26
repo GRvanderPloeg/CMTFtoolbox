@@ -2,7 +2,7 @@
 % Please edit documentation in R/modelSelection.R
 \name{modelSelection}
 \alias{modelSelection}
-\title{Factor Match Score (FMS) for model selection}
+\title{Model selection}
 \usage{
 modelSelection(
   datasets,
@@ -63,24 +63,30 @@ modelSelection(
 \item{grad_tol}{Absolute tolerence for the l2-norm of the gradient vector.}
 }
 \value{
-List containing "FMS" with the resulting pairwise comparisons of all models per number of components and "plot" with an overview plot.
+List object containing plots of all metrics and dataframes containing the data used to create them.
 }
 \description{
-Factor Match Score (FMS) for model selection
+Model selection
 }
 \examples{
 set.seed(123)
-A = array(rnorm(108*2), c(108, 2))
-B = array(rnorm(100*2), c(100, 2))
-C = array(rnorm(10*2), c(10, 2))
-D = array(rnorm(100*2), c(100,2))
-E = array(rnorm(10*2), c(10,2))
 
-df1 = reinflateTensor(A, B, C)
-df2 = reinflateTensor(A, D, E)
-datasets = list(df1, df2)
+I = 10
+J = 5
+K = 3
+df = array(rnorm(I*J*K), c(I,J,K))
+df2 = array(rnorm(I*J*K), c(I,J,K))
+datasets = list(df, df2)
 modes = list(c(1,2,3), c(1,4,5))
 
-# specific setting to reduce runtime for CRAN
-result = investigateFMS(datasets, modes, 1, model="acmtf", numFolds=2, rel_tol=1e-4, abs_tol=1e-4)
+# A very small procedure is run to limit computational requirements
+result = modelSelection(datasets,
+                        modes,
+                        maxNumComponents=2,
+                        nstart=2,
+                        cvFolds=2,
+                        rel_tol=1e-4,
+                        abs_tol=1e-4)
+
+result$plots$overview
 }
