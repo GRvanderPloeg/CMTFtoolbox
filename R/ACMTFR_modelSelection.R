@@ -30,8 +30,8 @@
 #'                               maxNumComponents=2,
 #'                               nstart=2,
 #'                               cvFolds=2,
-#'                               rel_tol=1e-4,
-#'                               abs_tol=1e-4)
+#'                               rel_tol=1e-2,
+#'                               abs_tol=1e-2)
 #'
 #' result$plots$overview
 ACMTFR_modelSelection = function(datasets, modes, Y,
@@ -485,3 +485,6 @@ ACMTFR_modelSelection = function(datasets, modes, Y,
 # Ugly solution to namespace issues caused by dplyr
 RMSE = NULL
 RMSECV = NULL
+value = NULL
+name = NULL
+numComponents = NULL
