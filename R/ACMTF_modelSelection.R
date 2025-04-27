@@ -1,4 +1,4 @@
-#' Model selection
+#' Model selection for ACMTF
 #'
 #' @inheritParams acmtf_opt
 #' @inheritParams setupCMTFdata
@@ -25,16 +25,16 @@
 #' modes = list(c(1,2,3), c(1,4,5))
 #'
 #' # A very small procedure is run to limit computational requirements
-#' result = modelSelection(datasets,
-#'                         modes,
-#'                         maxNumComponents=2,
-#'                         nstart=2,
-#'                         cvFolds=2,
-#'                         rel_tol=1e-4,
-#'                         abs_tol=1e-4)
+#' result = ACMTF_modelSelection(datasets,
+#'                               modes,
+#'                               maxNumComponents=2,
+#'                               nstart=2,
+#'                               cvFolds=2,
+#'                               rel_tol=1e-4,
+#'                               abs_tol=1e-4)
 #'
 #' result$plots$overview
-modelSelection = function(datasets, modes, maxNumComponents=3, sharedMode=1, alpha=1, beta=rep(0.001, length(datasets)), epsilon=1e-8, nstart=10, cvFolds=10, numCores=1, method="CG", cg_update="HS", line_search="MT", max_iter=10000, max_fn=100000, rel_tol=1e-8, abs_tol=1e-8, grad_tol=1e-8){
+ACMTF_modelSelection = function(datasets, modes, maxNumComponents=3, sharedMode=1, alpha=1, beta=rep(0.001, length(datasets)), epsilon=1e-8, nstart=10, cvFolds=10, numCores=1, method="CG", cg_update="HS", line_search="MT", max_iter=10000, max_fn=100000, rel_tol=1e-8, abs_tol=1e-8, grad_tol=1e-8){
 
   numDatasets = length(datasets)
   numModes = max(unlist(modes))
@@ -104,7 +104,8 @@ modelSelection = function(datasets, modes, maxNumComponents=3, sharedMode=1, alp
                                      foldID = currentRow$fold
                                      repID = currentRow$replicate
 
-                                     trainIdx = foldsPartition[[foldID]]
+                                     testIdx = foldsPartition[[foldID]]
+                                     trainIdx = setdiff(seq_len(numSubjects), testIdx)
 
                                      ## Prepare X
                                      newDatasets = list()
@@ -133,20 +134,20 @@ modelSelection = function(datasets, modes, maxNumComponents=3, sharedMode=1, alp
 
                                      # Each replicate is fitted with a single initialization and one core.
                                      model_fit = CMTFtoolbox::acmtf_opt(newZ,
-                                                                         numComponents = currentComp,
-                                                                         alpha         = alpha,
-                                                                         beta          = beta,
-                                                                         epsilon       = epsilon,
-                                                                         method        = method,
-                                                                         cg_update     = cg_update,
-                                                                         line_search   = line_search,
-                                                                         max_iter      = max_iter,
-                                                                         max_fn        = max_fn,
-                                                                         abs_tol       = abs_tol,
-                                                                         rel_tol       = rel_tol,
-                                                                         grad_tol      = grad_tol,
-                                                                         nstart        = 1,
-                                                                         numCores      = 1)
+                                                                        numComponents = currentComp,
+                                                                        alpha         = alpha,
+                                                                        beta          = beta,
+                                                                        epsilon       = epsilon,
+                                                                        method        = method,
+                                                                        cg_update     = cg_update,
+                                                                        line_search   = line_search,
+                                                                        max_iter      = max_iter,
+                                                                        max_fn        = max_fn,
+                                                                        abs_tol       = abs_tol,
+                                                                        rel_tol       = rel_tol,
+                                                                        grad_tol      = grad_tol,
+                                                                        nstart        = 1,
+                                                                        numCores      = 1)
                                      list(numComponents = currentComp,
                                           fold = foldID,
                                           replicate = repID,
@@ -157,61 +158,62 @@ modelSelection = function(datasets, modes, maxNumComponents=3, sharedMode=1, alp
   } else {
     resultsList = vector("list", nrow(settings))
     for(i in 1:nrow(settings)){
-       currentRow = settings[i, ]
-       currentComp = currentRow$numComponents
-       foldID = currentRow$fold
-       repID = currentRow$replicate
+      currentRow = settings[i, ]
+      currentComp = currentRow$numComponents
+      foldID = currentRow$fold
+      repID = currentRow$replicate
 
-       trainIdx = foldsPartition[[foldID]]
+      testIdx = foldsPartition[[foldID]]
+      trainIdx = setdiff(seq_len(numSubjects), testIdx)
 
-       ## Prepare X
-       newDatasets = list()
-       for(p in 1:numDatasets){
-         X = rTensor::as.tensor(datasets[[p]])
-         newModes = X@modes
-         newModes[1] = length(trainIdx)
+      ## Prepare X
+      newDatasets = list()
+      for(p in 1:numDatasets){
+        X = rTensor::as.tensor(datasets[[p]])
+        newModes = X@modes
+        newModes[1] = length(trainIdx)
 
-         # Center
-         unfoldedX = rTensor::k_unfold(X, 1)@data
-         unfoldedX = unfoldedX[trainIdx,] # mask is applied here to work for 2-3 way
-         means = colMeans(unfoldedX, na.rm=TRUE)
-         unfoldedX_cnt = sweep(unfoldedX, 2, means, FUN="-")
-         X_cnt = rTensor::k_fold(unfoldedX_cnt, m=1, modes=newModes)
+        # Center
+        unfoldedX = rTensor::k_unfold(X, 1)@data
+        unfoldedX = unfoldedX[trainIdx,] # mask is applied here to work for 2-3 way
+        means = colMeans(unfoldedX, na.rm=TRUE)
+        unfoldedX_cnt = sweep(unfoldedX, 2, means, FUN="-")
+        X_cnt = rTensor::k_fold(unfoldedX_cnt, m=1, modes=newModes)
 
-         # Scale
-         unfoldedX = rTensor::k_unfold(X_cnt, 2)@data
-         stds = apply(unfoldedX, 1, function(x){stats::sd(x, na.rm=TRUE)})
-         unfoldedX_scl = sweep(unfoldedX, 1, stds, FUN="/")
-         X_cnt_scl = rTensor::k_fold(unfoldedX_scl, m=2, modes=newModes)
+        # Scale
+        unfoldedX = rTensor::k_unfold(X_cnt, 2)@data
+        stds = apply(unfoldedX, 1, function(x){stats::sd(x, na.rm=TRUE)})
+        unfoldedX_scl = sweep(unfoldedX, 1, stds, FUN="/")
+        X_cnt_scl = rTensor::k_fold(unfoldedX_scl, m=2, modes=newModes)
 
-         newDatasets[[p]] = X_cnt_scl@data
-       }
+        newDatasets[[p]] = X_cnt_scl@data
+      }
 
-       # Prepare data
-       newZ = setupCMTFdata(newDatasets, modes, normalize=TRUE)
+      # Prepare data
+      newZ = setupCMTFdata(newDatasets, modes, normalize=TRUE)
 
-       # Each replicate is fitted with a single initialization and one core.
-       model_fit = CMTFtoolbox::acmtf_opt(newZ,
-                                          numComponents = currentComp,
-                                          alpha         = alpha,
-                                          beta          = beta,
-                                          epsilon       = epsilon,
-                                          method        = method,
-                                          cg_update     = cg_update,
-                                          line_search   = line_search,
-                                          max_iter      = max_iter,
-                                          max_fn        = max_fn,
-                                          abs_tol       = abs_tol,
-                                          rel_tol       = rel_tol,
-                                          grad_tol      = grad_tol,
-                                          nstart        = 1,
-                                          numCores      = 1)
+      # Each replicate is fitted with a single initialization and one core.
+      model_fit = CMTFtoolbox::acmtf_opt(newZ,
+                                         numComponents = currentComp,
+                                         alpha         = alpha,
+                                         beta          = beta,
+                                         epsilon       = epsilon,
+                                         method        = method,
+                                         cg_update     = cg_update,
+                                         line_search   = line_search,
+                                         max_iter      = max_iter,
+                                         max_fn        = max_fn,
+                                         abs_tol       = abs_tol,
+                                         rel_tol       = rel_tol,
+                                         grad_tol      = grad_tol,
+                                         nstart        = 1,
+                                         numCores      = 1)
 
-       resultsList[[i]] = list(numComponents = currentComp,
-                               fold = foldID,
-                               replicate = repID,
-                               Z = newZ,
-                               model = model_fit)
+      resultsList[[i]] = list(numComponents = currentComp,
+                              fold = foldID,
+                              replicate = repID,
+                              Z = newZ,
+                              model = model_fit)
     }
   }
 
