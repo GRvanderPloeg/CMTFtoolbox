@@ -127,3 +127,18 @@ test_that("setupCMTFdata when not normalizing does not change the original data"
 
   expect_equal(df1[1,1,1], Z$object[[1]]@data[1,1,1])
 })
+
+test_that("setupCMTFdata works with a tensor-matrix combination", {
+  set.seed(123)
+  A = array(rnorm(108*2), c(108, 2))
+  B = array(rnorm(100*2), c(100, 2))
+  C = array(rnorm(10*2), c(10, 2))
+  D = array(rnorm(100*2), c(100, 2))
+
+  df1 = reinflateTensor(A, B, C)
+  df2 = reinflateMatrix(A, D)
+
+  datasets = list(df1, df2)
+  modes = list(c(1,2,3), c(1,4))
+  expect_no_error(setupCMTFdata(datasets, modes, normalize=FALSE))
+})
