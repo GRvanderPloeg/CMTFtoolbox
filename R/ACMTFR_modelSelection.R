@@ -144,8 +144,15 @@ ACMTFR_modelSelection = function(datasets, modes, Y,
                                      Xtrain_final = list()
                                      Xtest_final = list()
                                      for(p in 1:length(Z$object)){
-                                       Xtrain = rTensor::as.tensor(Z$object[[p]]@data[trainIdx, ,])
-                                       Xtest = rTensor::as.tensor(Z$object[[p]]@data[testIdx, ,])
+
+                                       if(length(dim(Z$object[[p]]@data))==3){
+                                         Xtrain = rTensor::as.tensor(Z$object[[p]]@data[trainIdx, ,])
+                                         Xtest = rTensor::as.tensor(Z$object[[p]]@data[testIdx, ,])
+                                       } else{
+                                         Xtrain = rTensor::as.tensor(Z$object[[p]]@data[trainIdx,])
+                                         Xtest = rTensor::as.tensor(Z$object[[p]]@data[testIdx,])
+                                       }
+
 
                                        # Centering Xtrain
                                        unfoldedXtrain = rTensor::k_unfold(Xtrain, 1)@data
@@ -234,8 +241,14 @@ ACMTFR_modelSelection = function(datasets, modes, Y,
       Xtrain_final = list()
       Xtest_final = list()
       for(p in 1:length(Z$object)){
-        Xtrain = rTensor::as.tensor(Z$object[[p]]@data[trainIdx, ,])
-        Xtest = rTensor::as.tensor(Z$object[[p]]@data[testIdx, ,])
+
+        if(length(dim(Z$object[[p]]@data))==3){
+          Xtrain = rTensor::as.tensor(Z$object[[p]]@data[trainIdx, ,])
+          Xtest = rTensor::as.tensor(Z$object[[p]]@data[testIdx, ,])
+        } else{
+          Xtrain = rTensor::as.tensor(Z$object[[p]]@data[trainIdx,])
+          Xtest = rTensor::as.tensor(Z$object[[p]]@data[testIdx,])
+        }
 
         # Centering Xtrain
         unfoldedXtrain = rTensor::k_unfold(Xtrain, 1)@data

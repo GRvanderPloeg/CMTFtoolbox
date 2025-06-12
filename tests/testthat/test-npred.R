@@ -97,6 +97,52 @@ test_that("the function throws no errors with several new samples", {
   expect_no_error(npred(model, Xtest, Ztrain))
 })
 
+test_that("the function throws no errors for the tensor-matrix case", {
+  set.seed(123)
+  I = 10
+  J = 5
+  K = 3
+  L = 8
+  M = 3
+  A = array(rnorm(I*2), c(I, 2))
+  B = array(rnorm(J*2), c(J, 2))
+  C = array(rnorm(K*2), c(K, 2))
+  D = array(rnorm(L*2), c(L, 2))
+
+  df1 = reinflateTensor(A, B, C)
+  df2 = reinflateMatrix(A, D)
+  datasets = list(df1, df2)
+  modes = list(c(1,2,3), c(1,4))
+  Z = setupCMTFdata(datasets, modes)
+  Y = matrix(A[,1])
+
+  # Remove a sample and define
+  i = c(1,2)
+  Xtest = list()
+  for(p in 1:length(Z$object)){
+    if(length(dim(Z$object[[p]]))==3){
+      Xtest[[p]] = Z$object[[p]]@data[i,,]
+    } else{
+      Xtest[[p]] = Z$object[[p]]@data[i,]
+    }
+  }
+  Ytest = Y[i]
+
+  Xtrain = list()
+  for(p in 1:length(Z$object)){
+    if(length(dim(Z$object[[p]]))==3){
+      Xtrain[[p]] = Z$object[[p]]@data[-i,,]
+    } else{
+      Xtrain[[p]] = Z$object[[p]]@data[-i,]
+    }
+  }
+  Ytrain = Y[-i]
+  Ztrain = setupCMTFdata(Xtrain, Z$modes)
+
+  model = acmtfr_opt(Ztrain,Ytrain,2,initialization="random",pi=0, nstart=1, max_iter=10)
+  expect_no_error(npred(model, Xtest, Ztrain))
+})
+
 test_that("vectX must be the same size as vectZ", {
   set.seed(123)
   I = 10

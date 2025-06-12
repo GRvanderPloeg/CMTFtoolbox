@@ -49,7 +49,13 @@ npred = function(model, newX, Z, sharedMode=1){
     otherModes = modes[-idx]
 
     lambdas = Fac[[numModes+1]][p,]
-    Zproj[[p]] = multiway::krprod(t(lambdas), multiway::krprod(Fac[[otherModes[2]]], Fac[[otherModes[1]]]))
+
+    if(length(modes)==3){
+      Zproj[[p]] = multiway::krprod(t(lambdas), multiway::krprod(Fac[[otherModes[2]]], Fac[[otherModes[1]]]))
+    } else{
+      Zproj[[p]] = multiway::krprod(t(lambdas), Fac[[otherModes[1]]])
+    }
+
   }
 
   # Combine Zproj elements and vectorize newX
@@ -68,7 +74,16 @@ npred = function(model, newX, Z, sharedMode=1){
   for(i in 1:numSamples){
 
     if(numSamples > 1){
-      newX_small = lapply(newX, function(x){x[i,,]})
+      # newX_small = lapply(newX, function(x){x[i,,]}) # old approach: breaks for tensor-matrix case
+
+      newX_small = list()
+      for(p in 1:length(newX)){
+        if(length(dim(newX[[p]]))==3){
+          newX_small[[p]] = newX[[p]][i,,]
+        } else{
+          newX_small[[p]] = newX[[p]][i,]
+        }
+      }
       vectX = as.matrix(unlist(lapply(newX_small, c)))
     } else{
       vectX = as.matrix(unlist(lapply(newX, c)))
