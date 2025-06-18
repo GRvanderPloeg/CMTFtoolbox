@@ -36,6 +36,20 @@
 #' Ypred = npred(model, Xtest, Ztrain, sharedMode=1)
 npred = function(model, newX, Z, sharedMode=1){
 
+  # 20250617 found another approach that is faster and easier:
+  # TODO: implement
+  #
+  # Z1 = rTensor::khatri_rao(model$Fac[[3]], model$Fac[[2]]) * model$Fac[[6]][1,]
+  # Z2 = rTensor::khatri_rao(model$Fac[[5]], model$Fac[[4]]) * model$Fac[[6]][2,]
+  # G = crossprod(Z1) + crossprod(Z2)
+  #
+  # vectX1 = c(Z$object[[1]][1,,]@data)
+  # vectX2 = c(Z$object[[2]][1,,]@data)
+  # b = crossprod(Z1, vectX1) + crossprod(Z2, vectX2)
+  #
+  # a = solve(G,b)
+  # a %*% model$rho
+
   numDatasets = length(Z$object)
   numComponents = length(model$rho)
   numModes = max(unlist(Z$modes))
