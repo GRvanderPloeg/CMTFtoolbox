@@ -1,11 +1,11 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# CMTFtoolbox <a href="https://grvanderploeg.github.io/CMTFtoolbox/"><img src="man/figures/logo.png" align="right" height="139" alt="CMTFtoolbox website" /></a>
+# CMTFtoolbox <a href="https://grvanderploeg.com/CMTFtoolbox/"><img src="man/figures/logo.png" align="right" height="139" alt="CMTFtoolbox website" /></a>
 
 <!-- badges: start -->
 
-[![codecov](https://codecov.io/gh/GRvanderPloeg/CMTFtoolbox/graph/badge.svg?token=Y8XWFAV0IC)](https://codecov.io/gh/GRvanderPloeg/CMTFtoolbox)
+[![codecov](https://codecov.io/gh/GRvanderPloeg/CMTFtoolbox/graph/badge.svg)](https://app.codecov.io/gh/GRvanderPloeg/CMTFtoolbox?branch=master)
 [![R-CMD-check](https://github.com/GRvanderPloeg/CMTFtoolbox/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/GRvanderPloeg/CMTFtoolbox/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
@@ -15,11 +15,9 @@ The `CMTFtoolbox` package provides R users with two data fusion methods
 that have previously been presented in the MATLAB sphere.
 
 - `cmtf_opt`: Coupled Matrix and Tensor Factorization (CMTF) as
-  described in [Acar et al., 2011](https://arxiv.org/abs/1105.3422).
+  described in \[Acar et al., 2011\]<doi:/10.48550/arXiv.1105.3422>.
 - `acmtf_opt`: Advanced Coupled Matrix and Tensor Factorization (ACMTF)
-  as described in [Acar et al.,
-  2013](https://doi.org/10.1109/EMBC.2013.6610925) and [Acar et al.,
-  2014](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-15-239).
+  as described in \[Acar et al., 2014\]<doi:10.1186/1471-2105-15-239>.
 - `acmtfr_opt`: ACMTF-regression, currently in development.
 
 Both of these methods were implemented using the all-at-once
@@ -28,21 +26,29 @@ implementation was achieved using the S4 Tensor object from `rTensor`
 and the various conjugate gradient approaches from `mize`. Other
 features of the package include:
 
-- `ncrossreg`: Jack-knife approach for determining the correct number of
-  components for ACMTF-R.
+- `ACMTF_modelSelection`: Combined random initialization and
+  cross-validation approach for determining the correct number of
+  components in ACMTF.
+- `ACMTFR_modelSelection`: Combined random initialization and
+  cross-validation approach for determining the correct number of
+  components in ACMTF-R.
 - `npred`: Prediction of Y for a new sample using an existing ACMTF-R
   model.
-- `reinflateFac`: reinflates all data blocks based on a CMTF, ACMTF, or
-  ACMTF-R model for inspection and residual calculation.
-- `Jakobsen2025`: A three-block example dataset containing a
-  subject-linked longitudinal microbiome infant gut microbiome, mother
-  milk microbiome and mother milk metabolomics dataset. More information
-  can be found in [Poulsen et al.,
-  2022](https://bmjopen.bmj.com/content/12/11/e059552).
-- The option of running the optimization algorithm as a line search
-  (default) or in L-BFGS. See the documentation for more details.
+- `Georgiou2025`: An example dataset containing a tensor of inflammatory
+  mediator data and a matrix of tooth microbiome data in a cohort of
+  apical periodontitis patients. More information can be found in
+  \[Georgiou et al., 2023a\]<doi:10.1111/iej.13854> and \[Georgiou et
+  al., 2023b\]<doi:10.1111/iej.13912>.
 
 ## Installation
+
+The `CMTFtoolbox` package can be installed from CRAN using:
+
+``` r
+install.packages("CMTFtoolbox")
+```
+
+## Development version
 
 You can install the development version of `CMTFtoolbox` from
 [GitHub](https://github.com/) with:
