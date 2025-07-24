@@ -1,5 +1,5 @@
 Package: CMTFtoolbox
-Title: Create (Advanced) Coupled Matrix and Tensor Factorization models
+Title: Create (Advanced) Coupled Matrix and Tensor Factorization Models
 Version: 0.0.0.9000
 Authors@R: c(
     person("Geert Roelof", "van der Ploeg", , "g.r.ploeg@uva.nl", role = c("aut", "cre"),
@@ -11,7 +11,7 @@ Authors@R: c(
     person("Age", "Smilde", , "a.k.smilde@uva.nl", role = "ctb",
            comment = c(ORCID = "0000-0002-3052-4644")),
     person("University of Amsterdam", role = c("cph", "fnd")))
-Description: Creates and helps select (Advanced) Coupled Matrix and Tensor Factorization models in R.
+Description: Creation and selection of (Advanced) Coupled Matrix and Tensor Factorization (ACMTF) and ACMTF-Regression (ACMTF-R) models. Selection of the optimal number of components can be done using `ACMTF_modelSelection()` and `ACMTFR_modelSelection()`. The CMTF and ACMTF methods were originally described by Acar et al., 2011 <doi:10.48550/arXiv.1105.3422> and Acar et al., 2014 <doi:10.1186/1471-2105-15-239>, respectively.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -42,4 +42,5 @@ VignetteBuilder: knitr
 Depends: 
     R (>= 2.10)
 LazyData: true
-URL: https://grvanderploeg.github.io/CMTFtoolbox/, https://grvanderploeg.com/CMTFtoolbox/
+URL: https://grvanderploeg.github.io/CMTFtoolbox/, https://grvanderploeg.com/CMTFtoolbox/, https://github.com/GRvanderPloeg/CMTFtoolbox
+BugReports: https://github.com/GRvanderPloeg/CMTFtoolbox/issues
