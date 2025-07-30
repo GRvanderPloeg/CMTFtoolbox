@@ -19,7 +19,7 @@ that have previously been presented in the MATLAB sphere.
 - `acmtf_opt`: Advanced Coupled Matrix and Tensor Factorization (ACMTF)
   as described in \[Acar et al., 2014\]<doi:10.1186/1471-2105-15-239>.
 - `acmtfr_opt`: ACMTF-regression (ACMTF-R) as described in van der Ploeg
-  et al., 2025 (doi pending, see citation below).
+  et al., 2025 (see citation below).
 
 Both of these methods were implemented using the all-at-once
 optimization approaches as described in the papers above. This
