@@ -23,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="index.html">CMTFtoolbox</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,7 +36,8 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="articles/CMTF_simulation.html">CMTF_simulation</a></li>
+<li><a class="dropdown-item" href="articles/AP.html">AP</a></li>
+    <li><a class="dropdown-item" href="articles/Introduction.html">Introduction</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
@@ -61,17 +62,18 @@
 </div>
 <!-- badges: start -->
 
+<!-- badges: end -->
 <div class="section level2">
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
 <p>The <code>CMTFtoolbox</code> package provides R users with two data fusion methods that have previously been presented in the MATLAB sphere.</p>
 <ul>
 <li>
-<code>cmtf_opt</code>: Coupled Matrix and Tensor Factorization (CMTF) as described in [Acar et al., 2011]<a href="doi:/10.48550/arXiv.1105.3422" class="uri">doi:/10.48550/arXiv.1105.3422</a>.</li>
+<code>cmtf_opt</code>: Coupled Matrix and Tensor Factorization (CMTF) (<a href="doi:10.48550/arXiv.1105.3422" class="uri">doi:10.48550/arXiv.1105.3422</a>).</li>
 <li>
-<code>acmtf_opt</code>: Advanced Coupled Matrix and Tensor Factorization (ACMTF) as described in [Acar et al., 2014]<a href="doi:10.1186/1471-2105-15-239" class="uri">doi:10.1186/1471-2105-15-239</a>.</li>
+<code>acmtf_opt</code>: Advanced Coupled Matrix and Tensor Factorization (ACMTF) (<a href="doi:10.1186/1471-2105-15-239" class="uri">doi:10.1186/1471-2105-15-239</a>).</li>
 <li>
-<code>acmtfr_opt</code>: ACMTF-regression, currently in development.</li>
+<code>acmtfr_opt</code>: ACMTF-regression (ACMTF-R) as described in van der Ploeg et al., 2025 (see citation below).</li>
 </ul>
 <p>Both of these methods were implemented using the all-at-once optimization approaches as described in the papers above. This implementation was achieved using the S4 Tensor object from <code>rTensor</code> and the various conjugate gradient approaches from <code>mize</code>. Other features of the package include:</p>
 <ul>
@@ -82,7 +84,7 @@
 <li>
 <code>npred</code>: Prediction of Y for a new sample using an existing ACMTF-R model.</li>
 <li>
-<code>Georgiou2025</code>: An example dataset containing a tensor of inflammatory mediator data and a matrix of tooth microbiome data in a cohort of apical periodontitis patients. More information can be found in [Georgiou et al., 2023a]<a href="doi:10.1111/iej.13854" class="uri">doi:10.1111/iej.13854</a> and [Georgiou et al., 2023b]<a href="doi:10.1111/iej.13912" class="uri">doi:10.1111/iej.13912</a>.</li>
+<code>Georgiou2025</code>: An example dataset containing a tensor of inflammatory mediator data and a matrix of tooth microbiome data in a cohort of apical periodontitis patients (<a href="doi:10.1111/iej.13854" class="uri">doi:10.1111/iej.13854</a> and <a href="doi:10.1111/iej.13912" class="uri">doi:10.1111/iej.13912</a>).</li>
 </ul>
 </div>
 <div class="section level2">
@@ -105,7 +107,7 @@
 </h2>
 <p>Please use the following citation when using this package:</p>
 <ul>
-<li>van der Ploeg, G. R., White, F. T. G., Westerhuis, J., Heintz-Buschart, A., &amp; Smilde, A. (2024). ACMTF-R: multi-way data integration of biological variation of interest (manuscript in preparation).</li>
+<li>van der Ploeg, G. R., White, F. T. G., Jakobsen, R. R., Westerhuis, J., Heintz-Buschart, A., &amp; Smilde, A. (2024). ACMTF-R: supervised multi-omics data integration uncovering shared and distinct outcome-associated variation. bioRxiv. 2025-07</li>
 </ul>
 </div>
 <div class="section level2">
