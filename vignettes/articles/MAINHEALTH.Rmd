@@ -133,7 +133,7 @@ Ynorm = Ycnt / norm(Ycnt, "2")
 # Too computationally intensive to run at this time.
 ```
 
-```{r acmtfr find best model pi=0.85}
+```{r acmtfr find best model}
 model_bmi85 = CMTFtoolbox::acmtfr_opt(Z, Ynorm, 1, pi=0.85, nstart = 10, method="L-BFGS", numCores=10)
 ```
 
