@@ -29,7 +29,8 @@ cytokineData$mode1 = cytokineData$mode1 %>%
   mutate(SubjectID = subjectMetadata) %>%
   left_join(cytokines_meta_data %>% select(-Visit) %>% unique()) %>%
   select(SubjectID, Gender, Age, case_control) %>%
-  left_join(otherMeta %>% select(SubjectID, PainS_NopainA) %>% unique())
+  left_join(otherMeta %>% select(SubjectID, PainS_NopainA) %>% unique()) %>%
+  select(-Age)
 
 cytokineData$mode2 = cytokineData$mode2 %>% mutate(name = V1) %>% select(name)
 
@@ -40,13 +41,6 @@ microbiome_raw = read.csv("./data-raw/20240429_microbiome_counts.csv", sep=" ", 
 taxonomy = read.csv("./data-raw/20240429_taxonomy.csv", sep=" ", header=FALSE)
 colnames(taxonomy) = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species", "zOTU")
 subjectMeta2 = read.csv("./data-raw/20240429_microbiome_sampleMeta.csv", sep=" ", header=FALSE)
-
-# # Remove extra samples
-# remove = c("A11-18", "A11-3", "A11-8 36", "A11-10 17", "A11-15 17") # last is new: "A11-8 46"
-# mask = !(subjectMeta2[,3] %in% remove)
-#
-# microbiome_raw = microbiome_raw[mask,]
-# subjectMeta2 = subjectMeta2[mask,]
 
 # Prepare export
 Tooth_microbiome = list()

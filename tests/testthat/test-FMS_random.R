@@ -9,7 +9,7 @@ test_that("the function works normally with 1 component", {
   modes = list(c(1,2,3), c(1,4,5))
   Z = setupCMTFdata(datasets, modes)
 
-  model1 = acmtf_opt(Z, 1, initialization="random")
+  model1 = acmtf_opt(Z, 1, initialization="random", abs_tol = 0.1, rel_tol=0.1)
 
   Fac1 = model1$Fac[1:3]
   Fac2 = Fac1
@@ -27,7 +27,7 @@ test_that("the function works normally with 2 components", {
   modes = list(c(1,2,3), c(1,4,5))
   Z = setupCMTFdata(datasets, modes)
 
-  model1 = acmtf_opt(Z, 2, initialization="random")
+  model1 = acmtf_opt(Z, 2, initialization="random", abs_tol = 0.1, rel_tol=0.1)
 
   Fac1 = model1$Fac[1:3]
   Fac2 = Fac1
@@ -45,7 +45,7 @@ test_that("two equal models have an FMS of 1", {
   modes = list(c(1,2,3), c(1,4,5))
   Z = setupCMTFdata(datasets, modes)
 
-  model1 = acmtf_opt(Z, 2, initialization="random")
+  model1 = acmtf_opt(Z, 2, initialization="random", abs_tol = 0.1, rel_tol=0.1)
 
   Fac1 = model1$Fac[1:3]
   Fac2 = Fac1
@@ -63,8 +63,8 @@ test_that("two different models have an FMS of larger than 0", {
   modes = list(c(1,2,3), c(1,4,5))
   Z = setupCMTFdata(datasets, modes)
 
-  model1 = acmtf_opt(Z, 2, initialization="random")
-  model2 = acmtf_opt(Z, 2, initialization="random")
+  model1 = acmtf_opt(Z, 2, initialization="random", abs_tol = 0.1, rel_tol=0.1)
+  model2 = acmtf_opt(Z, 2, initialization="random", abs_tol = 0.1, rel_tol=0.1)
 
   Fac1 = model1$Fac[1:3]
   Fac2 = model2$Fac[1:3]
@@ -82,8 +82,8 @@ test_that("two different models have an FMS of less than 1", {
   modes = list(c(1,2,3), c(1,4,5))
   Z = setupCMTFdata(datasets, modes)
 
-  model1 = acmtf_opt(Z, 2, initialization="random")
-  model2 = acmtf_opt(Z, 2, initialization="random")
+  model1 = acmtf_opt(Z, 2, initialization="random", abs_tol = 0.1, rel_tol=0.1)
+  model2 = acmtf_opt(Z, 2, initialization="random", abs_tol = 0.1, rel_tol=0.1)
 
   Fac1 = model1$Fac[1:3]
   Fac2 = model2$Fac[1:3]

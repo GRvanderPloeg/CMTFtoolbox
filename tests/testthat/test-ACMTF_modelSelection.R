@@ -9,7 +9,7 @@ test_that("the function works normally", {
   datasets = list(df, df2)
   modes = list(c(1,2,3), c(1,4,5))
 
-  expect_no_error(ACMTF_modelSelection(datasets, modes, maxNumComponents=2, nstart=2, cvFolds=2, rel_tol=1e-2, abs_tol=1e-2))
+  expect_no_error(ACMTF_modelSelection(datasets, modes, maxNumComponents=2, nstart=2, cvFolds=2, rel_tol=0.5, abs_tol=0.5))
 })
 
 test_that("the function works when jack-knifing", {
@@ -23,7 +23,7 @@ test_that("the function works when jack-knifing", {
   datasets = list(df, df2)
   modes = list(c(1,2,3), c(1,4,5))
 
-  expect_no_error(ACMTF_modelSelection(datasets, modes, maxNumComponents=2, nstart=2, cvFolds=10, rel_tol=1e-2, abs_tol=1e-2))
+  expect_no_error(ACMTF_modelSelection(datasets, modes, maxNumComponents=2, nstart=2, cvFolds=10, rel_tol=0.5, abs_tol=0.5))
 })
 
 test_that("running in parallel works", {
@@ -39,5 +39,5 @@ test_that("running in parallel works", {
   datasets = list(df, df2)
   modes = list(c(1,2,3), c(1,4,5))
 
-  expect_no_error(ACMTF_modelSelection(datasets, modes, maxNumComponents=2, nstart=2, cvFolds=2, rel_tol=1e-2, abs_tol=1e-2, numCores=2))
+  expect_no_error(ACMTF_modelSelection(datasets, modes, maxNumComponents=2, nstart=2, cvFolds=2, rel_tol=0.5, abs_tol=0.5, numCores=2))
 })

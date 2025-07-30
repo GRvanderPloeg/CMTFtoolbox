@@ -1,8 +1,8 @@
 ---
-title: "CMTF_simulation"
+title: "Introduction"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{CMTF_simulation}
+  %\VignetteIndexEntry{Introduction}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -132,3 +132,4 @@ ggarrange(a,b,c,d,e,f,g,h,i,j, nrow=2, ncol=5)
 Note that negative correlations may be observed due to component flipping, which is similar to Principal Component Analysis and does not alter the description of the found subspace. There is also a difference in magnitude between the simulated components and the modelled components due to CMTF not penalizing the size of the vectors.
 
 This concludes a brief introduction into applying cmtf_opt to various types of data. For a more in-depth analysis of robustness towards noise, we refer to Acar et al., 2011, which provides a framework that we replicate in the CMTF_noise_simulation vignette.
+

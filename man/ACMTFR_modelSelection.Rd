@@ -96,11 +96,12 @@ Y = as.matrix(rnorm(I))
 result = ACMTFR_modelSelection(datasets,
                               modes,
                               Y,
+                              pi=1.0,
                               maxNumComponents=2,
                               nstart=2,
                               cvFolds=2,
-                              rel_tol=1e-2,
-                              abs_tol=1e-2)
+                              rel_tol=0.5,
+                              abs_tol=0.5)
 
 result$plots$overview
 }

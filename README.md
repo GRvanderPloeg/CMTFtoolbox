@@ -18,7 +18,8 @@ that have previously been presented in the MATLAB sphere.
   described in \[Acar et al., 2011\]<doi:/10.48550/arXiv.1105.3422>.
 - `acmtf_opt`: Advanced Coupled Matrix and Tensor Factorization (ACMTF)
   as described in \[Acar et al., 2014\]<doi:10.1186/1471-2105-15-239>.
-- `acmtfr_opt`: ACMTF-regression, currently in development.
+- `acmtfr_opt`: ACMTF-regression (ACMTF-R) as described in van der Ploeg
+  et al., 2025 (doi pending, see citation below).
 
 Both of these methods were implemented using the all-at-once
 optimization approaches as described in the papers above. This
@@ -62,10 +63,10 @@ devtools::install_github("GRvanderPloeg/CMTFtoolbox")
 
 Please use the following citation when using this package:
 
-- van der Ploeg, G. R., White, F. T. G., Westerhuis, J.,
-  Heintz-Buschart, A., & Smilde, A. (2024). ACMTF-R: multi-way data
-  integration of biological variation of interest (manuscript in
-  preparation).
+- van der Ploeg, G. R., White, F. T. G., Jakobsen, R. R., Westerhuis,
+  J., Heintz-Buschart, A., & Smilde, A. (2024). ACMTF-R: supervised
+  multi-omics data integration uncovering shared and distinct
+  outcome-associated variation. bioRxiv. 2025-07
 
 ## Usage
 

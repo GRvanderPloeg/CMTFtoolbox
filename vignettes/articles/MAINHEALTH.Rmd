@@ -1,0 +1,157 @@
+---
+title: "MAINHEALTH"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(parafac4microbiome)
+library(NPLStoolbox)
+library(CMTFtoolbox)
+```
+
+```{r define colours}
+colours = RColorBrewer:: brewer.pal(8, "Dark2")
+BMI_cols = c("darkgreen","darkgoldenrod","darkred") #colours[1:3]
+WHZ_cols = c("darkgreen", "darkgoldenrod", "dodgerblue4")
+phylum_cols = colours
+```
+
+# ACMTF
+
+```{r acmtf process and homogenize data}
+homogenizedSamples = intersect(intersect(NPLStoolbox::Jakobsen2025$faeces$mode1 %>% filter(!is.na(BMI)) %>% select(subject) %>% pull(), NPLStoolbox::Jakobsen2025$milkMicrobiome$mode1 %>% filter(!is.na(BMI)) %>% select(subject) %>% pull()), NPLStoolbox::Jakobsen2025$milkMetabolomics$mode1 %>% filter(!is.na(BMI)) %>% select(subject) %>% pull())
+
+# Faeces
+newFaeces = NPLStoolbox::Jakobsen2025$faeces
+
+mask = newFaeces$mode1$subject %in% homogenizedSamples
+newFaeces$data = newFaeces$data[mask,,]
+newFaeces$mode1 = newFaeces$mode1[mask,]
+processedFaeces = parafac4microbiome::processDataCube(newFaeces, sparsityThreshold = 0.75, centerMode=1, scaleMode=2)
+
+# Milk
+newMilk = NPLStoolbox::Jakobsen2025$milkMicrobiome
+
+mask = newMilk$mode1$subject %in% homogenizedSamples
+newMilk$data = newMilk$data[mask,,]
+newMilk$mode1 = newMilk$mode1[mask,]
+processedMilk = parafac4microbiome::processDataCube(newMilk, sparsityThreshold=0.85, centerMode=1, scaleMode=2)
+
+# Milk metab
+newMilkMetab = NPLStoolbox::Jakobsen2025$milkMetabolomics
+
+mask = newMilkMetab$mode1$subject %in% homogenizedSamples
+newMilkMetab$data = newMilkMetab$data[mask,,]
+newMilkMetab$mode1 = newMilkMetab$mode1[mask,]
+processedMilkMetab = parafac4microbiome::processDataCube(newMilkMetab, CLR=FALSE, centerMode=1, scaleMode=2)
+```
+
+```{r acmtf create Z object for fitting ACMTF}
+datasets = list(processedFaeces$data, processedMilk$data, processedMilkMetab$data)
+modes = list(c(1,2,3), c(1,4,5), c(1,6,7))
+Z = setupCMTFdata(datasets, modes, normalize=TRUE)
+```
+
+```{r acmtf check CV outcome}
+# Way too computationally intensive
+```
+
+```{r fit acmtf model}
+acmtf_model = CMTFtoolbox::acmtf_opt(Z, 2, nstart = 10, method="L-BFGS", numCores=10)
+```
+
+```{r acmtf plot lambda matrix}
+lambda = abs(acmtf_model$Fac[[8]])
+colnames(lambda) = paste0("C", 1:2)
+
+lambda %>%
+  as_tibble() %>%
+  mutate(block=c("Infant faecal microbiome", "HM microbiome", "HM metabolome")) %>%
+  # mutate(block=factor(block, levels=c("tongue", "lowling", "lowinter", "upling", "upinter", "saliva", "metab"))) %>%
+  pivot_longer(-block) %>%
+  ggplot(aes(x=as.factor(name),y=value,fill=as.factor(block))) +
+  geom_bar(stat="identity",position=position_dodge(),col="black") +
+  xlab("ACMTF component number") +
+  ylab(expression(lambda)) +
+  scale_x_discrete(labels=1:3) +
+  scale_fill_manual(name="Dataset",values = hue_pal()(3),labels=c("Infant faecal microbiome", "HM microbiome", "HM metabolome")) +
+  theme(legend.position="top")
+```
+```{r acmtf test subject mode loadings}
+testMetadata = function(model, comp, metadata){
+  transformedSubjectLoadings = transformPARAFACloadings(model$Fac, 1)[,comp]
+  transformedSubjectLoadings = transformedSubjectLoadings / norm(transformedSubjectLoadings, "2")
+  
+  result = lm(transformedSubjectLoadings ~ BMI + C.section + Secretor + Lewis + whz.6m, data=metadata$mode1)
+  
+  # Extract coefficients and confidence intervals
+  coef_estimates <- summary(result)$coefficients
+  conf_intervals <- confint(result)
+  
+  # Remove intercept
+  coef_estimates <- coef_estimates[rownames(coef_estimates) != "(Intercept)", ]
+  conf_intervals <- conf_intervals[rownames(conf_intervals) != "(Intercept)", ]
+  
+  # Combine into a clean data frame
+  summary_table <- data.frame(
+    Term     = rownames(coef_estimates),
+    Estimate = coef_estimates[, "Estimate"] * 1e3,
+    CI       = paste0(
+                 conf_intervals[, 1], " – ",
+                 conf_intervals[, 2]
+               ),
+    P_value  = coef_estimates[, "Pr(>|t|)"],
+    P_adjust = p.adjust(coef_estimates[, "Pr(>|t|)"], "BH"),
+    row.names = NULL
+  )
+  
+  return(summary_table)
+}
+
+testMetadata(acmtf_model, 1, processedFaeces)
+testMetadata(acmtf_model, 2, processedFaeces)
+```
+# ACMTF-R
+
+```{r acmtfr prepare y}
+Y = processedFaeces$mode1$BMI
+Ycnt = Y - mean(Y)
+Ynorm = Ycnt / norm(Ycnt, "2")
+```
+
+```{r acmtfr cv results}
+# Too computationally intensive to run at this time.
+```
+
+```{r acmtfr find best model pi=0.85}
+model_bmi85 = CMTFtoolbox::acmtfr_opt(Z, Ynorm, 1, pi=0.85, nstart = 10, method="L-BFGS", numCores=10)
+```
+
+```{r acmtfr plot lambda}
+lambda = abs(model_bmi85$Fac[[8]])
+colnames(lambda) = paste0("C", 1)
+
+lambda %>%
+  as_tibble() %>%
+  mutate(block=c("Infant faecal microbiome", "HM microbiome", "HM metabolome")) %>%
+  # mutate(block=factor(block, levels=c("tongue", "lowling", "lowinter", "upling", "upinter", "saliva", "metab"))) %>%
+  pivot_longer(-block) %>%
+  ggplot(aes(x=as.factor(name),y=value,fill=as.factor(block))) +
+  geom_bar(stat="identity",position=position_dodge(),col="black") +
+  xlab("ACMTF component number") +
+  ylab(expression(lambda)) +
+  scale_x_discrete(labels=1:3) +
+  scale_fill_manual(name="Dataset",values = hue_pal()(3),labels=c("Infant faecal microbiome", "HM microbiome", "HM metabolome")) +
+  theme(legend.position="top")
+```
+
+```{r acmtfr test subject mode}
+testMetadata(model_bmi85, 1, processedFaeces)
+```

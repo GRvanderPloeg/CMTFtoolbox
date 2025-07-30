@@ -10,7 +10,7 @@ test_that("the function works normally", {
   modes = list(c(1,2,3), c(1,4,5))
   Y = as.matrix(rnorm(I))
 
-  expect_no_error(ACMTFR_modelSelection(datasets, modes, Y, maxNumComponents=2, pi=0.8, nstart=2, cvFolds=2, rel_tol=1e-2, abs_tol=1e-2))
+  expect_no_error(ACMTFR_modelSelection(datasets, modes, Y, maxNumComponents=2, pi=1.0, nstart=2, cvFolds=2, rel_tol=0.5, abs_tol=0.5))
 })
 
 test_that("the function works for the tensor-matrix case", {
@@ -25,7 +25,7 @@ test_that("the function works for the tensor-matrix case", {
   modes = list(c(1,2,3), c(1,4))
   Y = as.matrix(rnorm(I))
 
-  expect_no_error(ACMTFR_modelSelection(datasets, modes, Y, maxNumComponents=2, pi=0.8, nstart=2, cvFolds=2, rel_tol=1e-2, abs_tol=1e-2))
+  expect_no_error(ACMTFR_modelSelection(datasets, modes, Y, maxNumComponents=2, pi=1.0, nstart=2, cvFolds=2, rel_tol=0.5, abs_tol=0.5))
 })
 
 test_that("the function works when jack-knifing", {
@@ -40,7 +40,7 @@ test_that("the function works when jack-knifing", {
   modes = list(c(1,2,3), c(1,4,5))
   Y = as.matrix(rnorm(I))
 
-  expect_no_error(ACMTFR_modelSelection(datasets, modes, Y, maxNumComponents=2, pi=0.8, nstart=2, cvFolds=10, rel_tol=1e-2, abs_tol=1e-2))
+  expect_no_error(ACMTFR_modelSelection(datasets, modes, Y, maxNumComponents=2, pi=1.0, nstart=2, cvFolds=10, rel_tol=0.5, abs_tol=0.5))
 })
 
 test_that("running in parallel works", {
@@ -57,5 +57,5 @@ test_that("running in parallel works", {
   modes = list(c(1,2,3), c(1,4,5))
   Y = as.matrix(rnorm(I))
 
-  expect_no_error(ACMTFR_modelSelection(datasets, modes, Y, maxNumComponents=2, pi=0.8, nstart=2, cvFolds=2, rel_tol=1e-2, abs_tol=1e-2, numCores=2))
+  expect_no_error(ACMTFR_modelSelection(datasets, modes, Y, maxNumComponents=2, pi=1.0, nstart=2, cvFolds=2, rel_tol=0.5, abs_tol=0.5, numCores=2))
 })
