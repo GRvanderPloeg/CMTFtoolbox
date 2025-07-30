@@ -1,12 +1,13 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# CMTFtoolbox <a href="https://grvanderploeg.com/CMTFtoolbox/"><img src="man/figures/logo.png" align="right" height="139" alt="CMTFtoolbox website" /></a>
+# CMTFtoolbox <a href="https://grvanderploeg.com/CMTFtoolbox/"><img src="man/figures/logo.png" alt="CMTFtoolbox website" align="right" height="139"/></a>
 
 <!-- badges: start -->
 
 [![codecov](https://codecov.io/gh/GRvanderPloeg/CMTFtoolbox/graph/badge.svg)](https://app.codecov.io/gh/GRvanderPloeg/CMTFtoolbox?branch=master)
 [![R-CMD-check](https://github.com/GRvanderPloeg/CMTFtoolbox/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/GRvanderPloeg/CMTFtoolbox/actions/workflows/R-CMD-check.yaml)
+
 <!-- badges: end -->
 
 ## Overview
@@ -14,10 +15,10 @@
 The `CMTFtoolbox` package provides R users with two data fusion methods
 that have previously been presented in the MATLAB sphere.
 
-- `cmtf_opt`: Coupled Matrix and Tensor Factorization (CMTF) as
-  described in \[Acar et al., 2011\]<doi:/10.48550/arXiv.1105.3422>.
+- `cmtf_opt`: Coupled Matrix and Tensor Factorization (CMTF)
+  (<doi:10.48550/arXiv.1105.3422>).
 - `acmtf_opt`: Advanced Coupled Matrix and Tensor Factorization (ACMTF)
-  as described in \[Acar et al., 2014\]<doi:10.1186/1471-2105-15-239>.
+  (<doi:10.1186/1471-2105-15-239>).
 - `acmtfr_opt`: ACMTF-regression (ACMTF-R) as described in van der Ploeg
   et al., 2025 (see citation below).
 
@@ -37,9 +38,8 @@ features of the package include:
   model.
 - `Georgiou2025`: An example dataset containing a tensor of inflammatory
   mediator data and a matrix of tooth microbiome data in a cohort of
-  apical periodontitis patients. More information can be found in
-  \[Georgiou et al., 2023a\]<doi:10.1111/iej.13854> and \[Georgiou et
-  al., 2023b\]<doi:10.1111/iej.13912>.
+  apical periodontitis patients (<doi:10.1111/iej.13854> and
+  <doi:10.1111/iej.13912>).
 
 ## Installation
 

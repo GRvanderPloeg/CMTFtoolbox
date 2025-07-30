@@ -32,7 +32,7 @@
 #' Ytrain = Y[-i]
 #' Ztrain = setupCMTFdata(Xtrain, Z$modes)
 
-#' model = acmtfr_opt(Ztrain,Ytrain,2,initialization="random",pi=0, nstart=1, max_iter=10)
+#' model = acmtfr_opt(Ztrain,Ytrain,1,initialization="random",pi=1, nstart=1, max_iter=10)
 #' Ypred = npred(model, Xtest, Ztrain, sharedMode=1)
 npred = function(model, newX, Z, sharedMode=1){
 

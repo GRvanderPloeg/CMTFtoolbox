@@ -38,7 +38,8 @@ Suggests:
     plotrix,
     parafac4microbiome,
     rmarkdown,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    scales
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 Depends: 
