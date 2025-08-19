@@ -16,9 +16,9 @@
 #' @examples
 #' set.seed(123)
 #'
-#' I = 10
-#' J = 5
-#' K = 3
+#' I = 3
+#' J = 4
+#' K = 5
 #' df = array(rnorm(I*J*K), c(I,J,K))
 #' df2 = array(rnorm(I*J*K), c(I,J,K))
 #' datasets = list(df, df2)
@@ -30,8 +30,8 @@
 #'                               maxNumComponents=2,
 #'                               nstart=2,
 #'                               cvFolds=2,
-#'                               rel_tol=1e-2,
-#'                               abs_tol=1e-2)
+#'                               rel_tol=1e-1,
+#'                               abs_tol=1e-1)
 #'
 #' result$plots$overview
 ACMTF_modelSelection = function(datasets, modes, maxNumComponents=3, sharedMode=1, alpha=1, beta=rep(0.001, length(datasets)), epsilon=1e-8, nstart=10, cvFolds=10, numCores=1, method="CG", cg_update="HS", line_search="MT", max_iter=10000, max_fn=100000, rel_tol=1e-8, abs_tol=1e-8, grad_tol=1e-8){

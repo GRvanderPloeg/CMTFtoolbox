@@ -2,6 +2,7 @@
 
 * Small edits to DESCRIPTION to fulfill CRAN guidelines.
 * Messages printed to console using the fitting functions can now be suppressed.
+* Edited the example for `ACMTF_modelSelection` to run slightly faster.
 
 # CMTFtoolbox 1.0.0
 
