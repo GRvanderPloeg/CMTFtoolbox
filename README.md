@@ -66,7 +66,8 @@ Please use the following citation when using this package:
 - van der Ploeg, G. R., White, F. T. G., Jakobsen, R. R., Westerhuis,
   J., Heintz-Buschart, A., & Smilde, A. (2024). ACMTF-R: supervised
   multi-omics data integration uncovering shared and distinct
-  outcome-associated variation. bioRxiv. 2025-07
+  outcome-associated variation. bioRxiv. 2025.07.28.667162;
+  <doi:10.1101/2025.07.28.667162>
 
 ## Usage
 

@@ -1,5 +1,8 @@
 # CMTFtoolbox 1.0.1
 
+* Small edits to DESCRIPTION to fulfill CRAN guidelines.
+* Messages printed to console using the fitting functions can now be suppressed.
+
 # CMTFtoolbox 1.0.0
 
 * Initial CRAN submission.

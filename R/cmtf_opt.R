@@ -51,7 +51,7 @@ cmtf_opt = function(Z, numComponents, initialization="random", method="CG", cg_u
 
     models = foreach::foreach(i=1:nstart) %dopar% {
       fg = list("fn"=function(x){return(CMTFtoolbox::cmtf_fun(x,Z))}, "gr"=function(x){return(CMTFtoolbox::cmtf_gradient(x,Z))}, "fg"=function(x){return(CMTFtoolbox::cmtf_fg(x,Z))})
-      print(dim(Z$object[[1]])) # somehow this line fixes a bug where parallel gives an error about "dims cannot be of length 0"
+      message(dim(Z$object[[1]])) # somehow this line fixes a bug where parallel gives an error about "dims cannot be of length 0"
       model = mize::mize(par=inits[[i]], fg=fg, max_iter=max_iter, max_fn=max_fn, abs_tol=abs_tol, rel_tol=rel_tol, grad_tol=grad_tol, method=method, cg_update=cg_update, line_search=line_search, store_progress=TRUE)
     }
     parallel::stopCluster(cl)
