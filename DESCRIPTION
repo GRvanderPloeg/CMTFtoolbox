@@ -1,6 +1,6 @@
 Package: CMTFtoolbox
 Title: Create (Advanced) Coupled Matrix and Tensor Factorization Models
-Version: 1.0.0
+Version: 1.0.1
 Authors@R: c(
     person("Geert Roelof", "van der Ploeg", , "g.r.ploeg@uva.nl", role = c("aut", "cre"),
            comment = c(ORCID = "0009-0007-5204-3386")),
@@ -11,7 +11,7 @@ Authors@R: c(
     person("Age", "Smilde", , "a.k.smilde@uva.nl", role = "ctb",
            comment = c(ORCID = "0000-0002-3052-4644")),
     person("University of Amsterdam", role = c("cph", "fnd")))
-Description: Creation and selection of (Advanced) Coupled Matrix and Tensor Factorization (ACMTF) and ACMTF-Regression (ACMTF-R) models. Selection of the optimal number of components can be done using `ACMTF_modelSelection()` and `ACMTFR_modelSelection()`. The CMTF and ACMTF methods were originally described by Acar et al., 2011 <doi:10.48550/arXiv.1105.3422> and Acar et al., 2014 <doi:10.1186/1471-2105-15-239>, respectively.
+Description: Creation and selection of (Advanced) Coupled Matrix and Tensor Factorization (ACMTF) and ACMTF-Regression (ACMTF-R) models. Selection of the optimal number of components can be done using 'ACMTF_modelSelection()' and 'ACMTFR_modelSelection()'. The CMTF and ACMTF methods were originally described by Acar et al., 2011 <doi:10.48550/arXiv.1105.3422> and Acar et al., 2014 <doi:10.1186/1471-2105-15-239>, respectively.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
