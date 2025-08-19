@@ -27,7 +27,7 @@
 #' # A very small procedure is run to limit computational requirements
 #' result = ACMTF_modelSelection(datasets,
 #'                               modes,
-#'                               maxNumComponents=2,
+#'                               maxNumComponents=1,
 #'                               nstart=2,
 #'                               cvFolds=2,
 #'                               rel_tol=1e-1,
