@@ -22,7 +22,8 @@ ACMTF_modelSelection(
   max_fn = 1e+05,
   rel_tol = 1e-08,
   abs_tol = 1e-08,
-  grad_tol = 1e-08
+  grad_tol = 1e-08,
+  plots = TRUE
 )
 }
 \arguments{
@@ -61,9 +62,11 @@ ACMTF_modelSelection(
 \item{abs_tol}{Function tolerance criterion for convergence.}
 
 \item{grad_tol}{Absolute tolerence for the l2-norm of the gradient vector.}
+
+\item{plots}{Boolean to state if plots should be made of the outcome.}
 }
 \value{
-List object containing plots of all metrics and dataframes containing the data used to create them.
+List object containing variation explained, FMS, and degeneracy score metrics. If plots=TRUE, plots will be attached to the list.
 }
 \description{
 Model selection for ACMTF
@@ -80,13 +83,14 @@ datasets = list(df, df2)
 modes = list(c(1,2,3), c(1,4,5))
 
 # A very small procedure is run to limit computational requirements
+# Plots are not made to reduce CRAN runtime.
 result = ACMTF_modelSelection(datasets,
                               modes,
-                              maxNumComponents=2,
+                              maxNumComponents=1,
                               nstart=2,
                               cvFolds=2,
-                              rel_tol=1e-2,
-                              abs_tol=1e-2)
-
-result$plots$overview
+                              rel_tol=1e-1,
+                              abs_tol=1e-1,
+                              max_iter=2,
+                              plots=FALSE)
 }

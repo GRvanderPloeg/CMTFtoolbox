@@ -7,8 +7,9 @@
 #' @param nstart Number of randomly initialized models to create (default 10).
 #' @param cvFolds Number of CV folds to create (default 10).
 #' @param numCores Number of cores to use (default 1). A number higher than 1 will run the process in parallel.
+#' @param plots Boolean to state if plots should be made of the outcome.
 #'
-#' @return List object containing plots of all metrics and dataframes containing the data used to create them.
+#' @return List object containing variation explained, FMS, and degeneracy score metrics. If plots=TRUE, plots will be attached to the list.
 #' @export
 #' @importFrom magrittr "%>%"
 #' @importFrom foreach %dopar%
@@ -16,25 +17,26 @@
 #' @examples
 #' set.seed(123)
 #'
-#' I = 3
-#' J = 4
-#' K = 5
+#' I = 10
+#' J = 5
+#' K = 3
 #' df = array(rnorm(I*J*K), c(I,J,K))
 #' df2 = array(rnorm(I*J*K), c(I,J,K))
 #' datasets = list(df, df2)
 #' modes = list(c(1,2,3), c(1,4,5))
 #'
 #' # A very small procedure is run to limit computational requirements
+#' # Plots are not made to reduce CRAN runtime.
 #' result = ACMTF_modelSelection(datasets,
 #'                               modes,
 #'                               maxNumComponents=1,
 #'                               nstart=2,
 #'                               cvFolds=2,
 #'                               rel_tol=1e-1,
-#'                               abs_tol=1e-1)
-#'
-#' result$plots$overview
-ACMTF_modelSelection = function(datasets, modes, maxNumComponents=3, sharedMode=1, alpha=1, beta=rep(0.001, length(datasets)), epsilon=1e-8, nstart=10, cvFolds=10, numCores=1, method="CG", cg_update="HS", line_search="MT", max_iter=10000, max_fn=100000, rel_tol=1e-8, abs_tol=1e-8, grad_tol=1e-8){
+#'                               abs_tol=1e-1,
+#'                               max_iter=2,
+#'                               plots=FALSE)
+ACMTF_modelSelection = function(datasets, modes, maxNumComponents=3, sharedMode=1, alpha=1, beta=rep(0.001, length(datasets)), epsilon=1e-8, nstart=10, cvFolds=10, numCores=1, method="CG", cg_update="HS", line_search="MT", max_iter=10000, max_fn=100000, rel_tol=1e-8, abs_tol=1e-8, grad_tol=1e-8, plots=TRUE){
 
   numDatasets = length(datasets)
   numModes = max(unlist(modes))
@@ -256,76 +258,80 @@ ACMTF_modelSelection = function(datasets, modes, maxNumComponents=3, sharedMode=
                  "FMS_CV" = FMS_CV_result,
                  "degeneracyScore" = degeneracy_result)
 
-  # Make plots
-  plots = list()
+  if(plots){
+    # Make plots
+    plots = list()
 
-  # varExp
-  df = varExps %>%
-    as.data.frame() %>%
-    dplyr::as_tibble() %>%
-    dplyr::mutate(numComponents = 1:maxNumComponents)
+    # varExp
+    df = varExps %>%
+      as.data.frame() %>%
+      dplyr::as_tibble() %>%
+      dplyr::mutate(numComponents = 1:maxNumComponents)
 
-  colnames(df) = c(paste0("X", 1:numDatasets), "numComponents")
+    colnames(df) = c(paste0("X", 1:numDatasets), "numComponents")
 
-  plots$varExp = df %>%
-    tidyr::pivot_longer(-numComponents) %>%
-    ggplot2::ggplot(ggplot2::aes(x=as.factor(numComponents),y=value,col=as.factor(name),group=as.factor(name))) +
-    ggplot2::geom_line() +
-    ggplot2::geom_point() +
-    ggplot2::xlab("Number of components") +
-    ggplot2::ylab("Variance explained (%)") +
-    ggplot2::guides(colour=ggplot2::guide_legend(title="Dataset"))
+    plots$varExp = df %>%
+      tidyr::pivot_longer(-numComponents) %>%
+      ggplot2::ggplot(ggplot2::aes(x=as.factor(numComponents),y=value,col=as.factor(name),group=as.factor(name))) +
+      ggplot2::geom_line() +
+      ggplot2::geom_point() +
+      ggplot2::xlab("Number of components") +
+      ggplot2::ylab("Variance explained (%)") +
+      ggplot2::guides(colour=ggplot2::guide_legend(title="Dataset"))
 
-  # FMS_random
-  df = do.call(rbind, FMS_random_result) %>%
-    as.data.frame() %>%
-    dplyr::as_tibble() %>%
-    dplyr::mutate(numComponents=rep(1:maxNumComponents,each=nrow(FMS_random_result[[1]])))
+    # FMS_random
+    df = do.call(rbind, FMS_random_result) %>%
+      as.data.frame() %>%
+      dplyr::as_tibble() %>%
+      dplyr::mutate(numComponents=rep(1:maxNumComponents,each=nrow(FMS_random_result[[1]])))
 
-  colnames(df) = c(paste0("X", 1:numDatasets), "numComponents")
+    colnames(df) = c(paste0("X", 1:numDatasets), "numComponents")
 
-  plots$FMS_random = df %>%
-    tidyr::pivot_longer(-numComponents) %>%
-    ggplot2::ggplot(ggplot2::aes(x=as.factor(numComponents),y=value,fill=as.factor(name))) +
-    ggplot2::geom_boxplot() +
-    ggplot2::xlab("Number of components") +
-    ggplot2::ylab(expression(FMS[random])) +
-    ggplot2::guides(fill=ggplot2::guide_legend(title="Dataset"))
+    plots$FMS_random = df %>%
+      tidyr::pivot_longer(-numComponents) %>%
+      ggplot2::ggplot(ggplot2::aes(x=as.factor(numComponents),y=value,fill=as.factor(name))) +
+      ggplot2::geom_boxplot() +
+      ggplot2::xlab("Number of components") +
+      ggplot2::ylab(expression(FMS[random])) +
+      ggplot2::guides(fill=ggplot2::guide_legend(title="Dataset"))
 
-  # Degeneracy score
-  df = degeneracy_result %>%
-    as.data.frame() %>%
-    dplyr::as_tibble() %>%
-    dplyr::mutate(numComponents = rep(1:maxNumComponents, each=nstart))
-  colnames(df) = c("degeneracy", "numComponents")
+    # Degeneracy score
+    df = degeneracy_result %>%
+      as.data.frame() %>%
+      dplyr::as_tibble() %>%
+      dplyr::mutate(numComponents = rep(1:maxNumComponents, each=nstart))
+    colnames(df) = c("degeneracy", "numComponents")
 
-  plots$degeneracyScore = df %>%
-    ggplot2::ggplot(ggplot2::aes(x=as.factor(numComponents),y=degeneracy)) +
-    ggplot2::geom_boxplot() +
-    ggplot2::xlab("Number of components") +
-    ggplot2::ylab("Degeneracy score") +
-    ggplot2::guides(colour=ggplot2::guide_legend(title="Dataset"))
+    plots$degeneracyScore = df %>%
+      ggplot2::ggplot(ggplot2::aes(x=as.factor(numComponents),y=degeneracy)) +
+      ggplot2::geom_boxplot() +
+      ggplot2::xlab("Number of components") +
+      ggplot2::ylab("Degeneracy score") +
+      ggplot2::guides(colour=ggplot2::guide_legend(title="Dataset"))
 
-  # FMS_CV
-  df = do.call(rbind, FMS_CV_result) %>%
-    as.data.frame() %>%
-    dplyr::as_tibble() %>%
-    dplyr::mutate(numComponents=rep(1:maxNumComponents,each=nrow(FMS_CV_result[[1]])))
+    # FMS_CV
+    df = do.call(rbind, FMS_CV_result) %>%
+      as.data.frame() %>%
+      dplyr::as_tibble() %>%
+      dplyr::mutate(numComponents=rep(1:maxNumComponents,each=nrow(FMS_CV_result[[1]])))
 
-  colnames(df) = c(paste0("X", 1:numDatasets), "numComponents")
+    colnames(df) = c(paste0("X", 1:numDatasets), "numComponents")
 
-  plots$FMS_CV = df %>%
-    tidyr::pivot_longer(-numComponents) %>%
-    ggplot2::ggplot(ggplot2::aes(x=as.factor(numComponents),y=value,fill=as.factor(name))) +
-    ggplot2::geom_boxplot() +
-    ggplot2::xlab("Number of components") +
-    ggplot2::ylab(expression(FMS[CV])) +
-    ggplot2::guides(fill=ggplot2::guide_legend(title="Dataset"))
+    plots$FMS_CV = df %>%
+      tidyr::pivot_longer(-numComponents) %>%
+      ggplot2::ggplot(ggplot2::aes(x=as.factor(numComponents),y=value,fill=as.factor(name))) +
+      ggplot2::geom_boxplot() +
+      ggplot2::xlab("Number of components") +
+      ggplot2::ylab(expression(FMS[CV])) +
+      ggplot2::guides(fill=ggplot2::guide_legend(title="Dataset"))
 
-  plots$overview = ggpubr::ggarrange(plots$varExp, plots$FMS_random, plots$degeneracyScore, plots$FMS_CV, common.legend=TRUE)
+    plots$overview = ggpubr::ggarrange(plots$varExp, plots$FMS_random, plots$degeneracyScore, plots$FMS_CV, common.legend=TRUE)
 
-  result = list("metrics"=metrics,
-                "plots"=plots)
+    result = list("metrics"=metrics,
+                  "plots"=plots)
+  } else{
+    result = list("metrics"=metrics)
+  }
 
   return(result)
 }
