@@ -21,6 +21,7 @@ library(ggplot2)
 library(ggpubr)
 library(readr)
 library(stringr)
+library(scales)
 ```
 
 ```{r import metadata}
