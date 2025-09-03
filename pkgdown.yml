@@ -2,8 +2,12 @@ pandoc: 3.1.11
 pkgdown: 2.1.3
 pkgdown_sha: ~
 articles:
+  articles/AP: AP.html
+  articles/GOHTRANS: GOHTRANS.html
   Introduction: Introduction.html
-last_built: 2025-09-02T09:37Z
+  articles/MAINHEALTH: MAINHEALTH.html
+  articles/TIFN2: TIFN2.html
+last_built: 2025-09-03T15:45Z
 urls:
   reference: https://grvanderploeg.com/CMTFtoolbox/reference
   article: https://grvanderploeg.com/CMTFtoolbox/articles
