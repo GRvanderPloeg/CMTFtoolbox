@@ -271,12 +271,12 @@ processedBiochemistry_acmtf = processDataCube(newBio, CLR=FALSE, centerMode=1, s
 acmtf_model = readRDS("./GOHTRANS/GOHTRANS_ACMTFR_model_1_deltaT.RDS")
 ```
 
-```{r test the model}
+```{r acmtf test the model}
 testMetadata(acmtf_model, 1, processedTongue_acmtf)
 testMetadata(acmtf_model, 2, processedTongue_acmtf)
 ```
 
-```{r plot the lambda matrix}
+```{r acmtf plot the lambda matrix}
 lambda = abs(acmtf_model$Fac[[10]])
 colnames(lambda) = paste0("C", 1:2)
 
@@ -294,7 +294,7 @@ lambda %>%
   theme(legend.position="top")
 ```
 
-```{r feature mode}
+```{r acmtf feature mode}
 # Briefly check how the signs work
 
 # Tongue
@@ -348,8 +348,6 @@ processedBiochemistry_acmtf$mode1 %>% mutate(comp = Xhat[,topIndices[1],1]) %>% 
 print("Negative loadings:")
 print(cor(Xhat[,bottomIndices[1],1], as.numeric(as.factor(processedBiochemistry_acmtf$mode1$GenderID)), use="pairwise.complete.obs"))
 processedBiochemistry_acmtf$mode1 %>% mutate(comp = Xhat[,bottomIndices[1],1]) %>% ggplot(aes(x=as.factor(GenderID),y=comp)) + geom_boxplot()
-
-############
 
 # Tongue
 temp = processedTongue_acmtf$mode2 %>%
@@ -472,7 +470,7 @@ c
 d
 ```
 
-```{r plot time loadings}
+```{r acmtf plot time loadings}
 a = acmtf_model$Fac[[3]][,2] %>% as_tibble() %>% mutate(value=-1*value) %>% mutate(timepoint=c(0,3,6,12)) %>% ggplot(aes(x=timepoint,y=value)) + geom_line() + geom_point() + xlab("Time point [months]") + ylab("Loading") + ylim(0,1)
 
 b = acmtf_model$Fac[[5]][,2] %>% as_tibble() %>% mutate(value=-1*value) %>% mutate(timepoint=c(0,3,6,12)) %>% ggplot(aes(x=timepoint,y=value)) + geom_line() + geom_point() + xlab("Time point [months]") + ylab("Loading") + ylim(0,1)
@@ -491,7 +489,7 @@ d
 
 ## Processing
 
-```{r prepare data}
+```{r acmtfr prepare data}
 deltaT = NPLStoolbox::Cornejo2025$Circulatory_hormones$data[,1,2] - NPLStoolbox::Cornejo2025$Circulatory_hormones$data[,1,1]
 outcome = NPLStoolbox::Cornejo2025$Circulatory_hormones$mode1 %>% mutate(deltaT = deltaT) %>% filter(deltaT != "NA")
 
@@ -552,15 +550,15 @@ Ynorm = Ycnt / norm(Ycnt, "2")
 
 ## Model selection
 
-```{r model selection}
+```{r acmtfr model selection}
 # Please see the separate R scripts at https://doi.org/10.5281/zenodo.16993009 for the model selection.
 ```
 
-```{r load models}
+```{r acmtfr load models}
 acmtfr_model90 = readRDS("./GOHTRANS/GOHTRANS_ACMTFR_model_90_deltaT.RDS")
 ```
 
-```{r test the model}
+```{r acmtfr test the model}
 testMetadata(acmtfr_model90, 1, processedTongue)
 testMetadata(acmtfr_model90, 2, processedTongue)
 ```
@@ -621,7 +619,7 @@ cor(Xhat[,topIndices,], Ynorm) # no flip
 cor(Xhat[,bottomIndices,], Ynorm)
 ```
 
-```{r plot the feature loadings}
+```{r acmtfr plot the feature loadings}
 # Tongue
 temp = processedTongue$mode2 %>%
   as_tibble() %>%
@@ -743,7 +741,7 @@ c
 d
 ```
 
-```{r plot time loadings}
+```{r acmtfr plot time loadings}
 a = acmtfr_model90$Fac[[3]][,2] %>% as_tibble() %>% mutate(value=-1*value) %>% mutate(timepoint=c(0,3,6,12)) %>% ggplot(aes(x=timepoint,y=value)) + geom_line() + geom_point() + xlab("Time point [months]") + ylab("Loading") + ylim(0,1)
 
 b = acmtfr_model90$Fac[[5]][,2] %>% as_tibble() %>% mutate(value=-1*value) %>% mutate(timepoint=c(0,3,6,12)) %>% ggplot(aes(x=timepoint,y=value)) + geom_line() + geom_point() + xlab("Time point [months]") + ylab("Loading") + ylim(0,1)
