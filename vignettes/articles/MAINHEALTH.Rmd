@@ -499,7 +499,7 @@ Ynorm = Ycnt / norm(Ycnt, "2")
 # Please see the separate R scripts at https://doi.org/10.5281/zenodo.16993009 for the model selection.
 ```
 
-```{r acmtfr find best model pi=0.85}
+```{r acmtfr find best model}
 model_bmi85 = readRDS("./MAINHEALTH/ACMTFR_model_bmi85.RDS")
 ```
 
