@@ -482,7 +482,7 @@ f
 g2
 ```
 
-```{r acmtf comp 2 time loadings}
+```{r acmtf comp 3 time loadings}
 a = processedTongue$mode3 %>%
   mutate(Comp = acmtf_model$Fac[[3]][,3], day=c(-14,0,2,5,9,14,21)) %>%
   select(-visit,-status) %>%
