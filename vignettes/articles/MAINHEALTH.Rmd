@@ -1,0 +1,674 @@
+---
+title: "MAINHEALTH"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Preamble
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(tidyr)
+library(parafac4microbiome)
+library(NPLStoolbox)
+library(CMTFtoolbox)
+library(ggplot2)
+library(ggpubr)
+library(stringr)
+library(scales)
+library(ggpattern)
+```
+
+```{r metadata test function}
+testMetadata = function(model, comp, metadata){
+  transformedSubjectLoadings = model$Fac[[1]][,comp]
+  transformedSubjectLoadings = transformedSubjectLoadings / norm(transformedSubjectLoadings, "2")
+  
+  result = lm(transformedSubjectLoadings ~ BMI + C.section + Secretor + Lewis + whz.6m, data=metadata$mode1)
+  
+  # Extract coefficients and confidence intervals
+  coef_estimates <- summary(result)$coefficients
+  conf_intervals <- confint(result)
+  
+  # Remove intercept
+  coef_estimates <- coef_estimates[rownames(coef_estimates) != "(Intercept)", ]
+  conf_intervals <- conf_intervals[rownames(conf_intervals) != "(Intercept)", ]
+  
+  # Combine into a clean data frame
+  summary_table <- data.frame(
+    Term     = rownames(coef_estimates),
+    Estimate = coef_estimates[, "Estimate"] * 1e3,
+    CI       = paste0(
+                 conf_intervals[, 1], " – ",
+                 conf_intervals[, 2]
+               ),
+    P_value  = coef_estimates[, "Pr(>|t|)"],
+    P_adjust = p.adjust(coef_estimates[, "Pr(>|t|)"], "BH"),
+    row.names = NULL
+  )
+  
+  return(summary_table)
+}
+```
+
+```{r define colours}
+# Old approach
+# Needed colours: BMI groups (3) and phyla levels (6)
+# colours = hue_pal()(9)
+# #show_col(colours)
+# BMI_cols = colours[c(1,4,7)]
+# phylum_cols = colours[-c(1,4,7)]
+
+# Rasmus's suggestion
+colours = RColorBrewer:: brewer.pal(8, "Dark2")
+BMI_cols = c("darkgreen","darkgoldenrod","darkred") #colours[1:3]
+WHZ_cols = c("darkgreen", "darkgoldenrod", "dodgerblue4")
+phylum_cols = colours
+```
+
+# ACMTF
+
+## Processing
+
+```{r process and homogenize data}
+homogenizedSamples = intersect(intersect(NPLStoolbox::Jakobsen2025$faeces$mode1 %>% filter(!is.na(BMI)) %>% select(subject) %>% pull(), NPLStoolbox::Jakobsen2025$milkMicrobiome$mode1 %>% filter(!is.na(BMI)) %>% select(subject) %>% pull()), NPLStoolbox::Jakobsen2025$milkMetabolomics$mode1 %>% filter(!is.na(BMI)) %>% select(subject) %>% pull())
+
+# Faeces
+newFaeces = NPLStoolbox::Jakobsen2025$faeces
+
+mask = newFaeces$mode1$subject %in% homogenizedSamples
+newFaeces$data = newFaeces$data[mask,,]
+newFaeces$mode1 = newFaeces$mode1[mask,]
+processedFaeces = parafac4microbiome::processDataCube(newFaeces, sparsityThreshold = 0.75, centerMode=1, scaleMode=2)
+
+# Milk
+newMilk = NPLStoolbox::Jakobsen2025$milkMicrobiome
+
+mask = newMilk$mode1$subject %in% homogenizedSamples
+newMilk$data = newMilk$data[mask,,]
+newMilk$mode1 = newMilk$mode1[mask,]
+processedMilk = parafac4microbiome::processDataCube(newMilk, sparsityThreshold=0.85, centerMode=1, scaleMode=2)
+
+# Milk metab
+newMilkMetab = NPLStoolbox::Jakobsen2025$milkMetabolomics
+
+mask = newMilkMetab$mode1$subject %in% homogenizedSamples
+newMilkMetab$data = newMilkMetab$data[mask,,]
+newMilkMetab$mode1 = newMilkMetab$mode1[mask,]
+processedMilkMetab = parafac4microbiome::processDataCube(newMilkMetab, CLR=FALSE, centerMode=1, scaleMode=2)
+
+datasets = list(processedFaeces$data, processedMilk$data, processedMilkMetab$data)
+modes = list(c(1,2,3), c(1,4,5), c(1,6,7))
+Z = setupCMTFdata(datasets, modes, normalize=TRUE)
+```
+
+## Model selection
+
+```{r acmtf check CV outcome}
+# Please see the separate R scripts at https://doi.org/10.5281/zenodo.16993009 for the model selection.
+```
+
+```{r find acmtf model}
+model_ACMTF = readRDS("./MAINHEALTH/ACMTF_model_bmi.RDS")
+```
+
+```{r acmtf test metadata}
+testMetadata(model_ACMTF, 1, processedFaeces)
+testMetadata(model_ACMTF, 2, processedFaeces)
+```
+
+```{r acmtf plot lambda matrix}
+lambda = abs(model_ACMTF$Fac[[8]])
+colnames(lambda) = paste0("C", 1:2)
+
+lambda %>%
+  as_tibble() %>%
+  mutate(block=c("Infant faecal microbiome", "HM microbiome", "HM metabolome")) %>%
+  # mutate(block=factor(block, levels=c("tongue", "lowling", "lowinter", "upling", "upinter", "saliva", "metab"))) %>%
+  pivot_longer(-block) %>%
+  ggplot(aes(x=as.factor(name),y=value,fill=as.factor(block))) +
+  geom_bar(stat="identity",position=position_dodge(),col="black") +
+  xlab("ACMTF component number") +
+  ylab(expression(lambda)) +
+  scale_x_discrete(labels=1:3) +
+  scale_fill_manual(name="Dataset",values = hue_pal()(3),labels=c("HM metabolome", "HM microbiome", "Infant faecal microbiome")) +
+  theme(legend.position="top", text=element_text(size=16))
+```
+
+```{r acmtf sign check comp 1}
+# Faeces
+topIndices = processedFaeces$mode2 %>% mutate(index=1:nrow(.), Comp = model_ACMTF$Fac[[2]][,1]) %>% arrange(desc(Comp)) %>% head() %>% select(index) %>% pull()
+bottomIndices = processedFaeces$mode2 %>% mutate(index=1:nrow(.), Comp = model_ACMTF$Fac[[2]][,1]) %>% arrange(desc(Comp)) %>% tail() %>% select(index) %>% pull()
+
+Xhat = parafac4microbiome::reinflateTensor(model_ACMTF$Fac[[1]][,1], model_ACMTF$Fac[[2]][,1], model_ACMTF$Fac[[3]][,1])
+
+print("Positive loadings:")
+print(cor(Xhat[,topIndices[1],1], processedMilkMetab$mode1$Secretor)) # no flip
+print("Negative loadings:")
+print(cor(Xhat[,bottomIndices[1],1], processedMilkMetab$mode1$Secretor))
+
+print("Positive loadings:")
+print(cor(Xhat[,topIndices[1],1], processedMilkMetab$mode1$BMI)) # no flip
+print("Negative loadings:")
+print(cor(Xhat[,bottomIndices[1],1], processedMilkMetab$mode1$BMI))
+
+# Milk
+topIndices = processedMilk$mode2 %>% mutate(index=1:nrow(.), Comp = model_ACMTF$Fac[[4]][,1]) %>% arrange(desc(Comp)) %>% head() %>% select(index) %>% pull()
+bottomIndices = processedMilk$mode2 %>% mutate(index=1:nrow(.), Comp = model_ACMTF$Fac[[4]][,1]) %>% arrange(desc(Comp)) %>% tail() %>% select(index) %>% pull()
+
+Xhat = 1 * parafac4microbiome::reinflateTensor(model_ACMTF$Fac[[1]][,1], model_ACMTF$Fac[[4]][,1], model_ACMTF$Fac[[5]][,1])
+
+print("Positive loadings:")
+print(cor(Xhat[,topIndices[1],1], processedMilk$mode1$Secretor)) # no flip
+print("Negative loadings:")
+print(cor(Xhat[,bottomIndices[1],1], processedMilk$mode1$Secretor))
+
+print("Positive loadings:")
+print(cor(Xhat[,topIndices[1],1], processedMilk$mode1$BMI)) # no flip
+print("Negative loadings:")
+print(cor(Xhat[,bottomIndices[1],1], processedMilk$mode1$BMI))
+
+# Milk metab
+topIndices = processedMilkMetab$mode2 %>% mutate(index=1:nrow(.), Comp = model_ACMTF$Fac[[6]][,1]) %>% arrange(desc(Comp)) %>% head() %>% select(index) %>% pull()
+bottomIndices = processedMilkMetab$mode2 %>% mutate(index=1:nrow(.), Comp = model_ACMTF$Fac[[6]][,1]) %>% arrange(desc(Comp)) %>% tail() %>% select(index) %>% pull()
+
+Xhat = parafac4microbiome::reinflateTensor(model_ACMTF$Fac[[1]][,1], model_ACMTF$Fac[[6]][,1], model_ACMTF$Fac[[7]][,1])
+
+print("Positive loadings:")
+print(cor(Xhat[,topIndices[1],1], processedMilkMetab$mode1$Secretor)) # no flip
+print("Negative loadings:")
+print(cor(Xhat[,bottomIndices[1],1], processedMilkMetab$mode1$Secretor))
+
+print("Positive loadings:")
+print(cor(Xhat[,topIndices[1],1], processedMilkMetab$mode1$BMI)) # no flip
+print("Negative loadings:")
+print(cor(Xhat[,bottomIndices[1],1], processedMilkMetab$mode1$BMI))
+```
+
+```{r acmtf comp 1 plot}
+a = processedMilk$mode1 %>%
+  mutate(Component_1 = model_ACMTF$Fac[[1]][,1]) %>%
+  ggplot(aes(x=as.factor(Secretor),y=Component_1)) +
+  geom_boxplot() +
+  stat_compare_means(comparisons=list(c("0","1")), label="p.signif") +
+  xlab("Secretor status") +
+  ylab("Loading") +
+  scale_x_discrete(labels=c("Se-", "Se+")) +
+  theme(text=element_text(size=16))
+
+df = processedFaeces$mode2 %>% 
+  mutate(Component_1 = model_ACMTF$Fac[[2]][,1]) %>%
+  arrange(Component_1) %>%
+  mutate(index=1:nrow(.)) %>%
+  mutate(Genus = gsub("g__", "", V7), Species = gsub("s__", "", V8)) %>% 
+  mutate(Species = str_split_fixed(Species, "_", 2)[,2]) %>% 
+  mutate(dplyr::across(.cols = Species, .fns = ~ dplyr::if_else(stringr::str_detect(.x, "sp."), "", .x))) %>%
+  mutate(dplyr::across(.cols = Species, .fns = ~ dplyr::if_else(stringr::str_detect(.x, "organism"), "", .x))) %>%
+  mutate(dplyr::across(.cols = Species, .fns = ~ dplyr::if_else(stringr::str_detect(.x, "bacterium"), "", .x))) %>%
+  filter(index %in% c(1:10, 84:93))
+  
+df[df$Genus == "" & df$Species == "", "Species"] = "Unknown"
+df[df$Species == "", "Species"] = "sp."
+df$name = paste0(df$Genus, " ", df$Species)
+
+b = df %>%
+  ggplot(aes(x=Component_1,y=as.factor(index),fill=as.factor(V3))) +
+  geom_bar(stat="identity", col="black") +
+  xlab("Loading") +
+  ylab("") +
+  scale_y_discrete(labels=df$name) +
+  scale_fill_manual(name="Phylum", values=hue_pal()(5)[-c(4,5)], labels=c("Actinobacteriota", "Bacteroidota", "Firmicutes")) +
+  theme(text=element_text(size=16))
+
+c = model_ACMTF$Fac[[3]][,1] %>%
+  as_tibble() %>% 
+  mutate(value=-1*value) %>% 
+  ggplot(aes(x=c(30,60,90),y=value)) +
+  geom_line() +
+  geom_point() +
+  xlab("Time point [day]") +
+  ylab("Loading") +
+  ylim(0,1) +
+  theme(text=element_text(size=16))
+
+df = processedMilk$mode2 %>%
+  mutate(Component_1 = model_ACMTF$Fac[[4]][,1]) %>%
+  arrange(Component_1) %>%
+  mutate(index=1:nrow(.)) %>%
+  mutate(Genus = gsub("g__", "", V7), Species = gsub("s__", "", V8)) %>% 
+  mutate(Species = str_split_fixed(Species, "_", 2)[,2]) %>% 
+  mutate(dplyr::across(.cols = Species, .fns = ~ dplyr::if_else(stringr::str_detect(.x, "sp."), "", .x))) %>%
+  mutate(dplyr::across(.cols = Species, .fns = ~ dplyr::if_else(stringr::str_detect(.x, "organism"), "", .x))) %>%
+  mutate(dplyr::across(.cols = Species, .fns = ~ dplyr::if_else(stringr::str_detect(.x, "bacterium"), "", .x))) %>%
+  filter(index %in% c(1:10, 106:115))
+
+df[df$Genus == "" & df$Species == "", "Species"] = "Unknown"
+df[df$Species == "", "Species"] = "sp."
+df$name = paste0(df$Genus, " ", df$Species)
+
+d = df %>%
+  ggplot(aes(x=Component_1,y=as.factor(index),fill=as.factor(V3))) +
+  geom_bar(stat="identity", col="black") +
+  xlab("Loading") +
+  ylab("") +
+  scale_y_discrete(labels=df$name) +
+  scale_fill_manual(name="Phylum", values=hue_pal()(5)[-5], labels=c("Actinobacteriota", "Bacteroidota", "Firmicutes", "Proteobacteria")) +
+  theme(text=element_text(size=16))
+
+e = model_ACMTF$Fac[[5]][,1] %>%
+  as_tibble() %>% 
+  mutate(value=value*-1) %>% 
+  ggplot(aes(x=c(0,30,60,90),y=value)) +
+  geom_line() +
+  geom_point() +
+  xlab("Time point [day]") +
+  ylab("Loading") +
+  ylim(0,1) +
+  theme(text=element_text(size=16))
+
+temp = processedMilkMetab$mode2 %>%
+  mutate(Component_1 = model_ACMTF$Fac[[6]][,1]) %>%
+  arrange(Component_1) %>%
+  mutate(index=1:nrow(.)) %>%
+  filter(index %in% c(1:10, 61:70))
+
+f=temp %>%
+  ggplot(aes(x=Component_1,y=as.factor(index),fill=as.factor(Class),pattern=as.factor(Class))) +
+  geom_bar_pattern(stat="identity",
+                   colour="black",
+                   pattern="stripe",
+                   pattern_fill="black",
+                   pattern_density=0.2,
+                   pattern_spacing=0.05,
+                   pattern_angle=45,
+                   pattern_size=0.2) +
+  scale_y_discrete(label=temp$Metabolite) +
+  xlab("Loading") +
+  ylab("") +
+  scale_fill_manual(name="Class", values=hue_pal()(7)[-c(3,4,5)], labels=c("Amino acids and derivatives", "Energy related", "Oligosaccharides", "Sugars")) +
+  theme(text=element_text(size=16))
+
+g = model_ACMTF$Fac[[7]][,1] %>%
+  as_tibble() %>% 
+  mutate(value=value*-1) %>% 
+  ggplot(aes(x=c(0,30,60,90),y=value)) +
+  geom_line() +
+  geom_point() +
+  xlab("Time point [day]") +
+  ylab("Loading") +
+  ylim(0,1) +
+  theme(text=element_text(size=16))
+
+a
+b
+c
+d
+e
+f
+g
+```
+
+```{acmtf sign check comp 2}
+# Faeces
+topIndices = processedFaeces$mode2 %>% mutate(index=1:nrow(.), Comp = model_ACMTF$Fac[[2]][,2]) %>% arrange(desc(Comp)) %>% head() %>% select(index) %>% pull()
+bottomIndices = processedFaeces$mode2 %>% mutate(index=1:nrow(.), Comp = model_ACMTF$Fac[[2]][,2]) %>% arrange(desc(Comp)) %>% tail() %>% select(index) %>% pull()
+
+Xhat = parafac4microbiome::reinflateTensor(model_ACMTF$Fac[[1]][,2], model_ACMTF$Fac[[2]][,2], model_ACMTF$Fac[[3]][,2])
+
+print("Positive loadings:")
+print(cor(Xhat[,topIndices[1],1], processedMilkMetab$mode1$Secretor))
+print("Negative loadings:")
+print(cor(Xhat[,bottomIndices[1],1], processedMilkMetab$mode1$Secretor))
+
+print("Positive loadings:")
+print(cor(Xhat[,topIndices[1],1], processedMilkMetab$mode1$BMI)) # flip
+print("Negative loadings:")
+print(cor(Xhat[,bottomIndices[1],1], processedMilkMetab$mode1$BMI))
+
+# Milk
+topIndices = processedMilk$mode2 %>% mutate(index=1:nrow(.), Comp = model_ACMTF$Fac[[4]][,2]) %>% arrange(desc(Comp)) %>% head() %>% select(index) %>% pull()
+bottomIndices = processedMilk$mode2 %>% mutate(index=1:nrow(.), Comp = model_ACMTF$Fac[[4]][,2]) %>% arrange(desc(Comp)) %>% tail() %>% select(index) %>% pull()
+
+Xhat = parafac4microbiome::reinflateTensor(model_ACMTF$Fac[[1]][,2], model_ACMTF$Fac[[4]][,2], model_ACMTF$Fac[[5]][,2])
+
+print("Positive loadings:")
+print(cor(Xhat[,topIndices[1],1], processedMilkMetab$mode1$Secretor))
+print("Negative loadings:")
+print(cor(Xhat[,bottomIndices[1],1], processedMilkMetab$mode1$Secretor))
+
+print("Positive loadings:")
+print(cor(Xhat[,topIndices[1],1], processedMilkMetab$mode1$BMI)) # flip
+print("Negative loadings:")
+print(cor(Xhat[,bottomIndices[1],1], processedMilkMetab$mode1$BMI))
+
+# MilkMetab
+topIndices = processedMilkMetab$mode2 %>% mutate(index=1:nrow(.), Comp = model_ACMTF$Fac[[6]][,2]) %>% arrange(desc(Comp)) %>% head() %>% select(index) %>% pull()
+bottomIndices = processedMilkMetab$mode2 %>% mutate(index=1:nrow(.), Comp = model_ACMTF$Fac[[6]][,2]) %>% arrange(desc(Comp)) %>% tail() %>% select(index) %>% pull()
+
+Xhat = parafac4microbiome::reinflateTensor(model_ACMTF$Fac[[1]][,2], model_ACMTF$Fac[[6]][,2], model_ACMTF$Fac[[7]][,2])
+
+print("Positive loadings:")
+print(cor(Xhat[,topIndices[1],1], processedMilkMetab$mode1$Secretor)) # NO FLIP BE CAREFUL
+print("Negative loadings:")
+print(cor(Xhat[,bottomIndices[1],1], processedMilkMetab$mode1$Secretor))
+
+print("Positive loadings:")
+print(cor(Xhat[,topIndices[1],1], processedMilkMetab$mode1$BMI)) # flip
+print("Negative loadings:")
+print(cor(Xhat[,bottomIndices[1],1], processedMilkMetab$mode1$BMI))
+```
+
+```{r acmtf comp 2 plot}
+a = processedMilk$mode1 %>%
+  mutate(Component_1 = model_ACMTF$Fac[[1]][,2]) %>%
+  ggplot(aes(x=BMI,y=Component_1)) +
+  geom_point() +
+  stat_cor() +
+  xlab("ppBMI") +
+  ylab("Loading") +
+  theme(text=element_text(size=16))
+
+df = processedFaeces$mode2 %>% 
+  mutate(Component_1 = -1*model_ACMTF$Fac[[2]][,2]) %>%
+  arrange(Component_1) %>%
+  mutate(index=1:nrow(.)) %>%
+  mutate(Genus = gsub("g__", "", V7), Species = gsub("s__", "", V8)) %>% 
+  mutate(Species = str_split_fixed(Species, "_", 2)[,2]) %>% 
+  mutate(dplyr::across(.cols = Species, .fns = ~ dplyr::if_else(stringr::str_detect(.x, "sp."), "", .x))) %>%
+  mutate(dplyr::across(.cols = Species, .fns = ~ dplyr::if_else(stringr::str_detect(.x, "organism"), "", .x))) %>%
+  mutate(dplyr::across(.cols = Species, .fns = ~ dplyr::if_else(stringr::str_detect(.x, "bacterium"), "", .x))) %>%
+  filter(index %in% c(1:10, 84:93))
+  
+df[df$Genus == "" & df$Species == "", "Species"] = "Unknown"
+df[df$Species == "", "Species"] = "sp."
+df$name = paste0(df$Genus, " ", df$Species)
+
+b = df %>%
+  ggplot(aes(x=Component_1,y=as.factor(index),fill=as.factor(V3))) +
+  geom_bar(stat="identity", col="black") +
+  xlab("Loading") +
+  ylab("") +
+  scale_y_discrete(labels=df$name) +
+  scale_fill_manual(name="Phylum", values=hue_pal()(5)[-5], labels=c("Actinobacteriota", "Bacteroidota", "Firmicutes", "Proteobacteria")) +
+  theme(text=element_text(size=16))
+
+c = model_ACMTF$Fac[[3]][,2] %>%
+  as_tibble() %>% 
+  mutate(value=value) %>% 
+  ggplot(aes(x=c(30,60,90),y=value)) +
+  geom_line() +
+  geom_point() +
+  xlab("Time point [day]") +
+  ylab("Loading") +
+  ylim(0,1) +
+  theme(text=element_text(size=16))
+
+df = processedMilk$mode2 %>%
+  mutate(Component_1 = -1*model_ACMTF$Fac[[4]][,2]) %>%
+  arrange(Component_1) %>%
+  mutate(index=1:nrow(.)) %>%
+  mutate(Genus = gsub("g__", "", V7), Species = gsub("s__", "", V8)) %>% 
+  mutate(Species = str_split_fixed(Species, "_", 2)[,2]) %>% 
+  mutate(dplyr::across(.cols = Species, .fns = ~ dplyr::if_else(stringr::str_detect(.x, "sp."), "", .x))) %>%
+  mutate(dplyr::across(.cols = Species, .fns = ~ dplyr::if_else(stringr::str_detect(.x, "organism"), "", .x))) %>%
+  mutate(dplyr::across(.cols = Species, .fns = ~ dplyr::if_else(stringr::str_detect(.x, "bacterium"), "", .x))) %>%
+  filter(index %in% c(1:10, 106:115))
+
+df[df$Genus == "" & df$Species == "", "Species"] = "Unknown"
+df[df$Species == "", "Species"] = "sp."
+df$name = paste0(df$Genus, " ", df$Species)
+  
+d = df %>%
+  ggplot(aes(x=Component_1,y=as.factor(index),fill=as.factor(V3))) +
+  geom_bar(stat="identity", col="black") +
+  xlab("Loading") +
+  ylab("") +
+  scale_y_discrete(labels=df$name) +
+  scale_fill_manual(name="Phylum", values=hue_pal()(5)[-c(2,5)], labels=c("Actinobacteriota", "Firmicutes", "Proteobacteria")) +
+  theme(text=element_text(size=16))
+
+e = model_ACMTF$Fac[[5]][,2] %>%
+  as_tibble() %>% 
+  mutate(value=value) %>% 
+  ggplot(aes(x=c(0,30,60,90),y=value)) +
+  geom_line() +
+  geom_point() +
+  xlab("Time point [day]") +
+  ylab("Loading") +
+  ylim(0,1) +
+  theme(text=element_text(size=16))
+
+temp = processedMilkMetab$mode2 %>%
+  mutate(Component_1 = -1*model_ACMTF$Fac[[6]][,2]) %>%
+  arrange(Component_1) %>% 
+  mutate(index=1:nrow(.)) %>%
+  filter(index %in% c(1:10, 61:70))
+
+f=temp %>%
+  ggplot(aes(x=Component_1,y=as.factor(index),fill=as.factor(Class),pattern=as.factor(Class))) +
+  geom_bar_pattern(stat="identity",
+                   colour="black",
+                   pattern="stripe",
+                   pattern_fill="black",
+                   pattern_density=0.2,
+                   pattern_spacing=0.05,
+                   pattern_angle=45,
+                   pattern_size=0.2) +
+  scale_y_discrete(label=temp$Metabolite) +
+  xlab("Loading") +
+  ylab("") +
+  scale_fill_manual(name="Class", values=hue_pal()(7)[-c(3,5)], labels=c("Amino acids and derivatives", "Energy related", "Food derived", "Oligosaccharides", "Sugars")) +
+  theme(text=element_text(size=16))
+
+g = model_ACMTF$Fac[[7]][,2] %>%
+  as_tibble() %>% 
+  mutate(value=value) %>% 
+  ggplot(aes(x=c(0,30,60,90),y=value)) +
+  geom_line() +
+  geom_point() +
+  xlab("Time point [day]") +
+  ylab("Loading") +
+  ylim(0,1) +
+  theme(text=element_text(size=16))
+
+a
+b
+c
+d
+e
+f
+g
+```
+
+# ACMTF-R
+
+## Processing
+
+```{r acmtfr prepare y}
+Y = processedFaeces$mode1$BMI
+Ycnt = Y - mean(Y)
+Ynorm = Ycnt / norm(Ycnt, "2")
+```
+
+```{r acmtfr cv results}
+# Please see the separate R scripts at https://doi.org/10.5281/zenodo.16993009 for the model selection.
+```
+
+```{r acmtfr find best model pi=0.85}
+model_bmi85 = readRDS("./MAINHEALTH/ACMTFR_model_bmi85.RDS")
+```
+
+```{r acmtfr metadata test}
+testMetadata(model_bmi85, 1, processedFaeces)
+```
+
+```{r acmtfr plot lambda}
+lambda = abs(model_bmi85$Fac[[8]])
+colnames(lambda) = paste0("C", 1)
+
+lambda %>%
+  as_tibble() %>%
+  mutate(block=c("Infant faecal microbiome", "HM microbiome", "HM metabolome")) %>%
+  # mutate(block=factor(block, levels=c("tongue", "lowling", "lowinter", "upling", "upinter", "saliva", "metab"))) %>%
+  pivot_longer(-block) %>%
+  ggplot(aes(x=as.factor(name),y=value,fill=as.factor(block))) +
+  geom_bar(stat="identity",position=position_dodge(),col="black") +
+  xlab("ACMTF-R component number") +
+  ylab(expression(lambda)) +
+  scale_x_discrete(labels=1:3) +
+  scale_fill_manual(name="Dataset",values = hue_pal()(3),labels=c("HM metabolome", "HM microbiome", "Infant faecal microbiome")) +
+  theme(legend.position="top")
+```
+
+```{r acmtfr feature mode}
+# Faeces
+topIndices = processedFaeces$mode2 %>% mutate(index=1:nrow(.), Comp = model_bmi85$Fac[[2]][,1]) %>% arrange(desc(Comp)) %>% head() %>% select(index) %>% pull()
+bottomIndices = processedFaeces$mode2 %>% mutate(index=1:nrow(.), Comp = model_bmi85$Fac[[2]][,1]) %>% arrange(desc(Comp)) %>% tail() %>% select(index) %>% pull()
+
+Xhat = parafac4microbiome::reinflateTensor(model_bmi85$Fac[[1]][,1], model_bmi85$Fac[[2]][,1], model_bmi85$Fac[[3]][,1])
+
+print("Positive loadings:")
+print(cor(Xhat[,topIndices[1],1], processedFaeces$mode1$BMI)) # flip
+print("Negative loadings:")
+print(cor(Xhat[,bottomIndices[1],1], processedFaeces$mode1$BMI))
+
+# Milk
+topIndices = processedMilk$mode2 %>% mutate(index=1:nrow(.), Comp = model_bmi85$Fac[[4]][,1]) %>% arrange(desc(Comp)) %>% head() %>% select(index) %>% pull()
+bottomIndices = processedMilk$mode2 %>% mutate(index=1:nrow(.), Comp = model_bmi85$Fac[[4]][,1]) %>% arrange(desc(Comp)) %>% tail() %>% select(index) %>% pull()
+
+Xhat = parafac4microbiome::reinflateTensor(model_bmi85$Fac[[1]][,1], model_bmi85$Fac[[4]][,1], model_bmi85$Fac[[5]][,1])
+
+print("Positive loadings:")
+print(cor(Xhat[,topIndices[1],1], processedFaeces$mode1$BMI)) # no flip
+print("Negative loadings:")
+print(cor(Xhat[,bottomIndices[1],1], processedFaeces$mode1$BMI))
+
+# Milk Metab
+topIndices = processedMilkMetab$mode2 %>% mutate(index=1:nrow(.), Comp = model_bmi85$Fac[[6]][,1]) %>% arrange(desc(Comp)) %>% head() %>% select(index) %>% pull()
+bottomIndices = processedMilkMetab$mode2 %>% mutate(index=1:nrow(.), Comp = model_bmi85$Fac[[6]][,1]) %>% arrange(desc(Comp)) %>% tail() %>% select(index) %>% pull()
+
+Xhat = parafac4microbiome::reinflateTensor(model_bmi85$Fac[[1]][,1], model_bmi85$Fac[[6]][,1], model_bmi85$Fac[[7]][,1])
+
+print("Positive loadings:")
+print(cor(Xhat[,topIndices[1],1], processedFaeces$mode1$BMI)) # no flip
+print("Negative loadings:")
+print(cor(Xhat[,bottomIndices[1],1], processedFaeces$mode1$BMI))
+
+# Faeces
+df = processedFaeces$mode2 %>% 
+  mutate(Comp=-1*model_bmi85$Fac[[2]][,1]) %>%
+  arrange(Comp) %>%
+  mutate(index=1:nrow(.), name=paste0(V7," ", V8)) %>%
+  mutate(Genus = gsub("g__", "", V7), Species = gsub("s__", "", V8)) %>% 
+  mutate(Species = str_split_fixed(Species, "_", 2)[,2]) %>% 
+  mutate(dplyr::across(.cols = Species, .fns = ~ dplyr::if_else(stringr::str_detect(.x, "sp."), "", .x))) %>%
+  mutate(dplyr::across(.cols = Species, .fns = ~ dplyr::if_else(stringr::str_detect(.x, "organism"), "", .x))) %>%
+  mutate(dplyr::across(.cols = Species, .fns = ~ dplyr::if_else(stringr::str_detect(.x, "bacterium"), "", .x))) %>%
+  filter(index %in% c(1:10, 84:93))
+
+df[df$Genus == "" & df$Species == "", "Species"] = "Unknown"
+df[df$Species == "", "Species"] = "sp."
+df$name = paste0(df$Genus, " ", df$Species)
+
+a=df %>%
+  ggplot(aes(x=Comp,y=as.factor(index),fill=as.factor(V3))) +
+  geom_bar(stat="identity", col="black") +
+  scale_y_discrete(label=df$name) +
+  xlab("Loading") +
+  ylab("") +
+  theme(text=element_text(size=16)) +
+  scale_fill_manual(name="Phylum", values=hue_pal()(5)[-5], labels=c("Actinobacteriota", "Bacteroidota", "Firmicutes", "Proteobacteria"))
+
+# Milk
+df = processedMilk$mode2 %>% mutate(Comp=model_bmi85$Fac[[4]][,1]) %>%
+  arrange(Comp) %>%
+  mutate(index=1:nrow(.), name=paste0(V7," ", V8)) %>%
+  mutate(Genus = gsub("g__", "", V7), Species = gsub("s__", "", V8)) %>% 
+  mutate(Species = str_split_fixed(Species, "_", 2)[,2]) %>% 
+  mutate(dplyr::across(.cols = Species, .fns = ~ dplyr::if_else(stringr::str_detect(.x, "sp."), "", .x))) %>%
+  mutate(dplyr::across(.cols = Species, .fns = ~ dplyr::if_else(stringr::str_detect(.x, "organism"), "", .x))) %>%
+  mutate(dplyr::across(.cols = Species, .fns = ~ dplyr::if_else(stringr::str_detect(.x, "bacterium"), "", .x))) %>%
+  filter(index %in% c(1:10, 106:115))
+
+df[df$Genus == "" & df$Species == "", "Species"] = "Unknown"
+df[df$Species == "", "Species"] = "sp."
+df$name = paste0(df$Genus, " ", df$Species)
+
+b=df %>%
+  ggplot(aes(x=Comp,y=as.factor(index),fill=as.factor(V3))) +
+  geom_bar(stat="identity", col="black") +
+  scale_y_discrete(label=df$name) +
+  xlab("Loading") +
+  ylab("") +
+  theme(text=element_text(size=16)) +
+  scale_fill_manual(name="Phylum", values=hue_pal()(5)[-5], labels=c("Actinobacteriota", "Bacteroidota", "Firmicutes", "Proteobacteria"))
+
+# MilkMetab
+df = processedMilkMetab$mode2 %>% mutate(Comp=model_bmi85$Fac[[6]][,1]) %>% arrange(Comp) %>% mutate(index=1:nrow(.), name=Metabolite) %>% filter(index %in% c(1:10, 61:70))
+c=df %>%
+  ggplot(aes(x=Comp,y=as.factor(index),fill=as.factor(Class),pattern=as.factor(Class))) +
+  geom_bar_pattern(stat="identity",
+                   colour="black",
+                   pattern="stripe",
+                   pattern_fill="black",
+                   pattern_density=0.2,
+                   pattern_spacing=0.05,
+                   pattern_angle=45,
+                   pattern_size=0.2) +
+  scale_y_discrete(label=df$name) +
+  xlab("Loading") +
+  ylab("") +
+  scale_fill_manual(name="Class", values=hue_pal()(7)[-5], labels=c("Amino acids and derivatives", "Energy related", "Fatty acids and derivatives", "Food derived", "Oligosaccharides", "Sugars")) +
+  theme(text=element_text(size=16))
+
+a
+b
+c
+```
+
+```{r acmtfr plot time mode}
+d = (model_bmi85$Fac[[3]]) %>%
+  as_tibble() %>%
+  mutate(time=c(30,60,90)) %>% 
+  pivot_longer(-time) %>%
+  ggplot(aes(x=time,y=value)) + 
+  geom_line() + 
+  geom_point() +
+  ylim(0,1) +
+  xlab("Time point [days]") +
+  ylab("Loading") +
+  theme(text=element_text(size=16))
+
+e = (-1*model_bmi85$Fac[[5]]) %>%
+  as_tibble() %>%
+  mutate(time=c(0,30,60,90)) %>% 
+  pivot_longer(-time) %>%
+  ggplot(aes(x=time,y=value)) + 
+  geom_line() + 
+  geom_point() +
+  ylim(0,1) +
+  xlab("Time point [days]") +
+  ylab("Loading") +
+  theme(text=element_text(size=16))
+
+f = (-1*model_bmi85$Fac[[7]]) %>%
+  as_tibble() %>%
+  mutate(time=c(0,30,60,90)) %>% 
+  pivot_longer(-time) %>%
+  ggplot(aes(x=time,y=value)) + 
+  geom_line() + 
+  geom_point() +
+  ylim(0,1) +
+  xlab("Time point [days]") +
+  ylab("Loading") +
+  theme(text=element_text(size=16))
+
+d
+e
+f
+```
