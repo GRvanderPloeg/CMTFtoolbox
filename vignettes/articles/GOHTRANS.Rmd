@@ -270,7 +270,12 @@ processedBiochemistry_acmtf = processDataCube(newBio, CLR=FALSE, centerMode=1, s
 
 ```{r fit acmtf}
 acmtf_model = readRDS("./GOHTRANS/GOHTRANS_ACMTFR_model_1_deltaT.RDS")
+acmtf_model$varExp
 ```
+
+## Description
+
+ACMTF was applied to the capture to dominant source of variation across all data blocks. The model selection procedure revealed that FMS CV < 0.9 when three components were selected. Therefore, a two-component ACMTF model was selected, explaining 12.3%, 10.8%, 50.1%, and 19.9% of the variation in the tongue microbiome, salivary microbiome, salivary cytokine, and salivary biochemistry data blocks, respectively. The Lambda-matrix of the model revealed that the first component was distinct to the salivary cytokine block, while the second component was predominantly distinct to the salivary biochemistry block. MLR analysis revealed that the first component was uninterpretable, while the second component was weakly associated with gender identity.
 
 ```{r acmtf test the model}
 testMetadata(acmtf_model, 1, processedTongue_acmtf)
@@ -557,7 +562,14 @@ Ynorm = Ycnt / norm(Ycnt, "2")
 
 ```{r acmtfr load models}
 acmtfr_model90 = readRDS("./GOHTRANS/GOHTRANS_ACMTFR_model_90_deltaT.RDS")
+acmtfr_model90$varExp
 ```
+
+## Description
+
+ACMTF-R was applied to supervise the joint decomposition using the difference in free testosterone between baseline and month three of GAHT as dependent variable (y). The model selection procedure revealed that two components were appropriate for all tested pi values, based on a low degeneracy score and RMSECV minimum. Subsequently, the two-component ACMTF-R model using pi=0.90 was selected for further interpretation due to balancing explaining the independent data and predicting y. The model explained 11.8%, 10.5%, 48.5%, 21.4%, and 21.2%, of the variation in the tongue microbiome, salivary microbiome, salivary cytokine, salivary biochemistry, and y, respectively. 
+
+The Lambda-matrix of the model revealed that the first component was distinct to the salivary cytokine block, while the second component was common with a slightly larger contribution from the salivary biochemistry block compared to the other blocks. MLR analysis revealed that the first component captured uninterpretable variation, while the second component was exclusively associated with gender identity. The second component was further inspected.
 
 ```{r acmtfr test the model}
 testMetadata(acmtfr_model90, 1, processedTongue)
@@ -756,3 +768,11 @@ b
 c
 d
 ```
+
+Positively loaded microbiota in the tongue microbiome including Streptococcus australis / parasanguinis, Streptococcus spp., Veillonella spp., Actinomyces lingae, Rothia mucilaginosa, and Prevotella denticola were enriched in transfeminine participants and depleted in transmasculine participants. Conversely, negatively microbiota including Lachnospiraceae sp., Oribacterium parvum, Peptostreptococcaceae sp., Lachnoanaerobaculum umeaense, Peptostreptococcus stomatis, Ruminococcaceae sp., Prevotella sp., Alloprevotella sp., and Prevotella shahii were enriched in transmasculine participants and depleted in transfeminine participants. The time mode loadings indicate that inter-subject differences due to GAHT decreased over time.
+
+Positively loaded microbiota in the salivary microbiome including Streptococcus australis / parasanguinis, Veillonella spp., Stomatobaculum spp., Prevotella sp., Alloprevotella tannerae, Oribacterium asaccharolyticum, Fusobacterium sp., and Rothia mucilaginosa were enriched in transfeminine participants and depleted in transmasculine participants. Conversely, negatively loaded microbiota including Prevotella spp., Haemophilus sp., Peptostreptococcus stomatis, Prevotella shahii, Peptostreptococcaceae sp., Ruminococcaceae sp., Alloprevotella sp., and two unclassified ASVs were enriched in transmasculine participants and depleted in transfeminine participants. The time mode loadings indicate that inter-subject differences due to GAHT was stable over time.
+
+Almost all salivary cytokines were positively loaded, indicating that they had higher levels in transfeminine participants and lower levels in transmasculine participants. The exception was IL-13, which had higher levels in transmasculine participants and lower levels in transfeminine participants. The time mode loadings indicate that inter-subject differences due to GAHT were absent at baseline and constant thereafter.
+
+Total protein and lysozyme levels were positively loaded for the salivary biochemistry block, indicating higher levels in transfeminine participants and lower levels in transmasculine participants. pH, chitinase, S-IgA, MUC-5B, and amylase were negatively loaded, indicating higher levels in transmasculine participants and lower levels in transfeminine participants. The time mode loadings indicate that these differences mainly occurred after three months of GAHT.

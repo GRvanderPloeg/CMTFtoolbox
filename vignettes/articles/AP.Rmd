@@ -141,7 +141,12 @@ Z = setupCMTFdata(datasets, modes, normalize=TRUE)
 
 ```{r fit acmtf}
 acmtf_model = readRDS("./AP/acmtf_model.RDS")
+acmtf_model$varExp
 ```
+
+## Description
+
+ACMTF was applied to capture the dominant source of variation across the longitudinally measured inflammatory mediator and cross-sectional tooth microbiome blocks. The model selection procedure indicated that three components yielded FMS CV < 0.9. Therefore, a two-component model was selected, explaining 20.5% and 27.4% of the variation in the inflammatory mediator and tooth microbiome data blocks, respectively. The Lambda-matrix of the model revealed that the first component was predominantly distinct to the tooth microbiome block, while the second component was predominantly distinct to the inflammatory mediator block. However, MLR analysis revealed that the first component captured variation associated with a mixture of gender, age and pain perception, while the second component captured variation exclusively associated with age.
 
 ```{r acmtf test the model}
 testMetadata(acmtf_model, 1, processedCytokines_case)
@@ -449,7 +454,14 @@ Ynorm = as.matrix(Ynorm)
 
 ```{r acmtfr load model}
 acmtfr_model90 = readRDS("./AP/AP_ACMTFR_model_90.RDS")
+acmtfr_model90$varExp
 ```
+
+## Description
+
+ACMTF-R was applied to supervise the joint decomposition using pain perception as the dependent variable ($\bm{y}$). The model selection procedure revealed that one component was appropriate for all tested $\pi$ values, based on a low RMSECV (Supplementary Figure~\ref{fig:AP_ACMTFR_CV}). Subsequently, the one-component ACMTF-R model using $\pi=0.90$ was selected for further interpretation due to balancing explaining the independent data and predicting $\bm{y}$ (Supplementary Table~\ref{tab:AP_acmtfr_varExp}).
+
+The Lambda-matrix of the model revealed that the component was predominantly distinct to the microbiome block ($\lambda=0.45$), with a minor contribution from the inflammatory mediator block ($\lambda=0.25$). MLR analysis revealed that the ACMTF-R component captured variation strongly associated with pain perception ($\beta=348.69$), and weakly associated with gender ($\beta=98.16$). This component was further interpreted.
 
 ```{r acmtfr test the model}
 testMetadata(acmtfr_model90, 1, processedCytokines_acmtf)
@@ -567,3 +579,7 @@ b
 c
 d
 ```
+
+Positively loaded inflammatory mediators included RANKL, MIP-1alpha, TNF-alpha, CRP, IL-8, IL-1alpha, GM-CSF, IL-17A, and IFN-gamma, which had higher levels in symptomatic AP and lower levels in asymptomatic AP. Conversely, negatively loaded inflammatory mediators included OPG, IL-4, IL-6, IL-1beta, IL-10, IL-12p70, and VEGF, which had higher levels in asymptomatic AP and lower levels in symptomatic AP. The time mode loadings indicate that inter-subject differences were slightly larger before the tooth extraction than after the extraction.
+
+Positively loaded microbiota included Parvimonas micra, Parvimonas sp., Solobacterium moorei, Mycoplasma salivarium, and Peptostreptococcus stomatis, which were enriched in symptomatic AP and depleted in asymptomatic AP. Conversely, negatively loaded microbiota included Streptococcus mutans, Propionibacterium acidifaciens, Selenomonas sp., Lactobacillus sp., Bifidobacterium dentium, and Leptotrichia wadei, which were enriched in asymptomatic AP and depleted in symptomatic AP. These associations largely align with the previously presented PLS and NPLS results, but are confounded by age to some degree.

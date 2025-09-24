@@ -115,7 +115,12 @@ Z = setupCMTFdata(datasets, modes, normalize=TRUE)
 
 ```{r find acmtf model}
 model_ACMTF = readRDS("./MAINHEALTH/ACMTF_model_bmi.RDS")
+model_acmtf$varExp
 ```
+
+## Description
+
+ACMTF was applied to capture to dominant source of variation across all data blocks. The model selection procedure revealed that FMS CV dropped below 0.9 when three components were selected. Therefore, a two-component ACMTF model was selected, explaining 14.3%, 10.2%, 6.0% of variation in the infant faecal microbiome, HM microbiome, and HM metabolomics data blocks, respectively. The Lambda-matrix of the model revealed that the first component was predominantly distinct to the infant faecal microbiome data block, while the second was local to the infant faecal and HM microbiome blocks. However, MLR analysis revealed that the first and second component captured variation associated with a mixture of maternal ppBMI and maternal secretor status.
 
 ```{r acmtf test metadata}
 testMetadata(model_ACMTF, 1, processedFaeces)
@@ -501,7 +506,14 @@ Ynorm = Ycnt / norm(Ycnt, "2")
 
 ```{r acmtfr find best model}
 model_bmi85 = readRDS("./MAINHEALTH/ACMTFR_model_bmi85.RDS")
+model_bmi85$varExp
 ```
+
+## Description
+
+ACMTF-R was applied to supervise the joint decomposition using maternal ppBMI as dependent variable (y). The model selection procedure revealed that one component was optimal for 0.5 <= pi <= 0.9, based on high and stable FMS CV and an RMSECV minimum. Subsequently, the one-component ACMTF-R model using pi=0.85 was selected for further interpretation due to balancing explaining the independent data and predicting y. The model explained 5.4%, 4.4%, 1.8%, and 62.1% of the variation in the infant faecal microbiome, HM microbiome, and HM metabolomics, and y, respectively. 
+
+The Lambda-matrix of the model revealed that the component was predominantly local to the infant faecal and HM microbiome data blocks, with a moderate contribution from the HM metabolomics block. However, MLR analysis revealed that the model captured variation strongly associated with maternal ppBMI and weakly associated with maternal Lewis status. This component was further inspected due to the strong association with maternal ppBMI.
 
 ```{r acmtfr metadata test}
 testMetadata(model_bmi85, 1, processedFaeces)
@@ -672,3 +684,9 @@ d
 e
 f
 ```
+
+Positively loaded taxa including Bifidobacterium, Bacteroides, Enterococcus, Escherichia coli and Staphylococcus epidermidis were enriched in infants of high ppBMI mothers, and depleted in infants of low ppBMI mothers. Conversely, negatively loaded taxa including Parabacteroides, Libanicoccus and Rothia, were enriched in infants of low ppBMI mothers, and depleted in infants of high ppBMI mothers. The time mode loadings indicate that inter-subject differences due to maternal ppBMI are constant throughout the time series for this block.
+
+In the HM microbiome, mainly Streptococcus and Staphylococcus were enriched in high ppBMI mothers and depleted in low ppBMI mothers. Conversely, Clostridium sensu stricto, Collinsella, and Lactobacillus were enriched in low ppBMI mothers and depleted in high ppBMI mothers. The time mode loadings indicate that inter-subject differences transiently increase at 30 days post-partum for this block.
+
+In the HM metabolomics, positively loaded metabolites including lactate, caffeine, fumarate, and several unidentified HMOs had elevated levels in high ppBMI mothers and lower levels in low ppBMI mothers. Conversely, negatively loaded metabolites included several amino acids and related compounds such as 2-aminobutyrate, methionine, and cis-aconitate, had higher levels in high ppBMI mothers and lower levels in low ppBMI mothers.
