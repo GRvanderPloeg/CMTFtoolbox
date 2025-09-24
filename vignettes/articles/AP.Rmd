@@ -1,5 +1,7 @@
 ---
-title: "AP"
+title: "AP: pain perception in apical periodontitis"
+output: html_document
+date: "2025-08-31"
 ---
 
 ```{r, include = FALSE}
