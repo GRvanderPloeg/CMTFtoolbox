@@ -115,7 +115,7 @@ Z = setupCMTFdata(datasets, modes, normalize=TRUE)
 
 ```{r find acmtf model}
 model_ACMTF = readRDS("./MAINHEALTH/ACMTF_model_bmi.RDS")
-model_acmtf$varExp
+model_ACMTF$varExp
 ```
 
 ## Description
