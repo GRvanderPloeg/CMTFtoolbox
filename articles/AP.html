@@ -211,7 +211,26 @@
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Please see the separate R scripts at https://doi.org/10.5281/zenodo.16993009 for the model selection.</span></span></code></pre></div>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">acmtf_model</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"./AP/acmtf_model.RDS"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">acmtf_model</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"./AP/acmtf_model.RDS"</span><span class="op">)</span></span>
+<span><span class="va">acmtf_model</span><span class="op">$</span><span class="va">varExp</span></span>
+<span><span class="co">#&gt; [1] 20.52755 27.41829</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="description">Description<a class="anchor" aria-label="anchor" href="#description"></a>
+</h3>
+<p>ACMTF was applied to capture the dominant source of variation across
+the longitudinally measured inflammatory mediator and cross-sectional
+tooth microbiome blocks. The model selection procedure indicated that
+three components yielded FMS CV &lt; 0.9. Therefore, a two-component
+model was selected, explaining 20.5% and 27.4% of the variation in the
+inflammatory mediator and tooth microbiome data blocks, respectively.
+The Lambda-matrix of the model revealed that the first component was
+predominantly distinct to the tooth microbiome block, while the second
+component was predominantly distinct to the inflammatory mediator block.
+However, MLR analysis revealed that the first component captured
+variation associated with a mixture of gender, age and pain perception,
+while the second component captured variation exclusively associated
+with age.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">testMetadata</span><span class="op">(</span><span class="va">acmtf_model</span>, <span class="fl">1</span>, <span class="va">processedCytokines_case</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             Term    Estimate                                        CI</span></span>
@@ -583,7 +602,37 @@
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Please see the separate R scripts at https://doi.org/10.5281/zenodo.16993009 for the model selection.</span></span></code></pre></div>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">acmtfr_model90</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"./AP/AP_ACMTFR_model_90.RDS"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">acmtfr_model90</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"./AP/AP_ACMTFR_model_90.RDS"</span><span class="op">)</span></span>
+<span><span class="va">acmtfr_model90</span><span class="op">$</span><span class="va">varExp</span></span>
+<span><span class="co">#&gt; [1]  5.937628 20.520930</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="description-1">Description<a class="anchor" aria-label="anchor" href="#description-1"></a>
+</h3>
+<p>ACMTF-R was applied to supervise the joint decomposition using pain
+perception as the dependent variable
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐲</mi><annotation encoding="application/x-tex">\bm{y}</annotation></semantics></math>).
+The model selection procedure revealed that one component was
+appropriate for all tested
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>π</mi><annotation encoding="application/x-tex">\pi</annotation></semantics></math>
+values, based on a low RMSECV (Supplementary Figure~). Subsequently, the
+one-component ACMTF-R model using
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>π</mi><mo>=</mo><mn>0.90</mn></mrow><annotation encoding="application/x-tex">\pi=0.90</annotation></semantics></math>
+was selected for further interpretation due to balancing explaining the
+independent data and predicting
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝐲</mi><annotation encoding="application/x-tex">\bm{y}</annotation></semantics></math>
+(Supplementary Table~).</p>
+<p>The Lambda-matrix of the model revealed that the component was
+predominantly distinct to the microbiome block
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi><mo>=</mo><mn>0.45</mn></mrow><annotation encoding="application/x-tex">\lambda=0.45</annotation></semantics></math>),
+with a minor contribution from the inflammatory mediator block
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>λ</mi><mo>=</mo><mn>0.25</mn></mrow><annotation encoding="application/x-tex">\lambda=0.25</annotation></semantics></math>).
+MLR analysis revealed that the ACMTF-R component captured variation
+strongly associated with pain perception
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mo>=</mo><mn>348.69</mn></mrow><annotation encoding="application/x-tex">\beta=348.69</annotation></semantics></math>),
+and weakly associated with gender
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>β</mi><mo>=</mo><mn>98.16</mn></mrow><annotation encoding="application/x-tex">\beta=98.16</annotation></semantics></math>).
+This component was further interpreted.</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">testMetadata</span><span class="op">(</span><span class="va">acmtfr_model90</span>, <span class="fl">1</span>, <span class="va">processedCytokines_acmtf</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             Term   Estimate                                          CI</span></span>
@@ -719,6 +768,23 @@
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">d</span></span></code></pre></div>
 <p><img src="AP_files/figure-html/plot%20the%20component-4.png" width="700"></p>
+<p>Positively loaded inflammatory mediators included RANKL, MIP-1alpha,
+TNF-alpha, CRP, IL-8, IL-1alpha, GM-CSF, IL-17A, and IFN-gamma, which
+had higher levels in symptomatic AP and lower levels in asymptomatic AP.
+Conversely, negatively loaded inflammatory mediators included OPG, IL-4,
+IL-6, IL-1beta, IL-10, IL-12p70, and VEGF, which had higher levels in
+asymptomatic AP and lower levels in symptomatic AP. The time mode
+loadings indicate that inter-subject differences were slightly larger
+before the tooth extraction than after the extraction.</p>
+<p>Positively loaded microbiota included Parvimonas micra, Parvimonas
+sp., Solobacterium moorei, Mycoplasma salivarium, and Peptostreptococcus
+stomatis, which were enriched in symptomatic AP and depleted in
+asymptomatic AP. Conversely, negatively loaded microbiota included
+Streptococcus mutans, Propionibacterium acidifaciens, Selenomonas sp.,
+Lactobacillus sp., Bifidobacterium dentium, and Leptotrichia wadei,
+which were enriched in asymptomatic AP and depleted in symptomatic AP.
+These associations largely align with the previously presented PLS and
+NPLS results, but are confounded by age to some degree.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
