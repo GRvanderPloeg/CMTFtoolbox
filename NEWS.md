@@ -1,3 +1,5 @@
+# CMTFtoolbox 1.1.0
+
 # CMTFtoolbox 1.0.1
 
 * Small edits to DESCRIPTION to fulfill CRAN guidelines.
