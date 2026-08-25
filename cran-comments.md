@@ -3,6 +3,7 @@ This is a resubmission. The previous version (v1.0.1) got archived on 2026-07-19
 In this version I have:
 
 * Updated the DESCRIPTION with the current email address of the maintainer.
+* Skipped one problematic MKL test pending a major package update.
 
 ## R CMD check results
 

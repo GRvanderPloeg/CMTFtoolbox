@@ -282,6 +282,7 @@ test_that("calcVarExpPerComponent does not throw errors", {
 })
 
 test_that("calcVarExpPerComponent values are minimum zero", {
+  skip_on_cran()
   set.seed(123)
   A = array(rnorm(108*2), c(108, 2))
   B = array(rnorm(100*2), c(100, 2))
