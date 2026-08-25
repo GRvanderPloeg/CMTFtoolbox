@@ -1,5 +1,7 @@
 # Changelog
 
+## CMTFtoolbox 1.1.1
+
 ## CMTFtoolbox 1.1.0
 
 ## CMTFtoolbox 1.0.1
