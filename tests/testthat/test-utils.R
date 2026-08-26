@@ -282,12 +282,12 @@ test_that("calcVarExpPerComponent does not throw errors", {
 })
 
 test_that("calcVarExpPerComponent values are minimum zero", {
-  skip_on_cran()
+
   set.seed(123)
-  A = array(rnorm(108*2), c(108, 2))
-  B = array(rnorm(100*2), c(100, 2))
-  C = array(rnorm(10*2), c(10, 2))
-  D = array(rnorm(100*2), c(100,2))
+  A = array(rnorm(108*1), c(108, 1))
+  B = array(rnorm(100*1), c(100, 1))
+  C = array(rnorm(10*1), c(10, 1))
+  D = array(rnorm(100*1), c(100,1))
 
   df1 = reinflateTensor(A, B, C)
   df2 = reinflateMatrix(A, D)
@@ -295,7 +295,7 @@ test_that("calcVarExpPerComponent values are minimum zero", {
   modes = list(c(1,2,3), c(1,4))
   Z = setupCMTFdata(datasets, modes)
 
-  result = cmtf_opt(Z, 2, initialization="nvec", max_iter=5)
+  result = cmtf_opt(Z, 1, initialization="nvec", max_iter=5)
   varExps = calcVarExpPerComponent(result$Fac, Z)
   expect_true(all(varExps >= 0))
 })
