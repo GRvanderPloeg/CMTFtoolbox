@@ -2,7 +2,11 @@
 
 ## CMTFtoolbox 1.1.1
 
+- Update to some tests to pass properly on MKL.
+
 ## CMTFtoolbox 1.1.0
+
+- Update to maintainer email address.
 
 ## CMTFtoolbox 1.0.1
 
