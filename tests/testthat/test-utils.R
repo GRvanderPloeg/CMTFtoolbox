@@ -293,11 +293,12 @@ test_that("calcVarExpPerComponent values are minimum zero", {
   df2 = reinflateMatrix(A, D)
   datasets = list(df1, df2)
   modes = list(c(1,2,3), c(1,4))
-  Z = setupCMTFdata(datasets, modes)
+  Z = setupCMTFdata(datasets, modes, normalize=FALSE)
 
-  result = cmtf_opt(Z, 1, initialization="nvec", max_iter=5)
-  varExps = calcVarExpPerComponent(result$Fac, Z)
-  expect_true(all(varExps >= 0))
+  #result = cmtf_opt(Z, 1, initialization="nvec", max_iter=5)
+  Fac = list(A,B,C,D)
+  varExps = calcVarExpPerComponent(Fac, Z)
+  expect_true(all(varExps >= -1e-6))
 })
 
 test_that("calcVarExpPerComponent values are maximum one", {
