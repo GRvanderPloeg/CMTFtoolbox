@@ -1,6 +1,6 @@
 Package: CMTFtoolbox
 Title: Create (Advanced) Coupled Matrix and Tensor Factorization Models
-Version: 1.1.1
+Version: 1.1.1.9000
 Authors@R: c(
     person("Geert Roelof", "van der Ploeg", , "roel@simula.no", role = c("aut", "cre"),
            comment = c(ORCID = "0009-0007-5204-3386")),
