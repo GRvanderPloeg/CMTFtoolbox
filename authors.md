@@ -18,7 +18,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/GRvanderPloeg/CMTFtoolbox/blob/master/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/GRvanderPloeg/CMTFtoolbox/blob/v1.1.1/DESCRIPTION)
 
 van der Ploeg G (2026). *CMTFtoolbox: Create (Advanced) Coupled Matrix
 and Tensor Factorization Models*. R package version 1.1.1,

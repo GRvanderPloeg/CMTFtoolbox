@@ -2,6 +2,8 @@
 
 ## CMTFtoolbox 1.1.1
 
+CRAN release: 2026-08-28
+
 - Update to some tests to pass properly on MKL.
 
 ## CMTFtoolbox 1.1.0
